@@ -20,6 +20,6 @@ dependencies {
     testCompile "junit:junit:$junitVersion"
     testCompile "org.mockito:mockito-all:$mockitoAllVersion"
     testCompile "org.hamcrest:hamcrest-core:$hamcrestCore"
-    testCompile "org.eclipse.jetty:jetty-util:$jettyVersion"
+    testCompile "org.springframework:spring-test:$springVersion"
 }
 
