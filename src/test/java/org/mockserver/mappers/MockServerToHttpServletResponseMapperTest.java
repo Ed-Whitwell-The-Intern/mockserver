@@ -10,6 +10,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author jamesdbloom
  */
-public class HttpServletResponseMapperTest {
+public class MockServerToHttpServletResponseMapperTest {
 
     @Test
     public void shouldMapHttpResponseToHttpServletResponse() throws UnsupportedEncodingException {
@@ -33,15 +34,17 @@ public class HttpServletResponseMapperTest {
         MockHttpServletResponse httpServletResponse = new MockHttpServletResponse();
 
         // when
-        new HttpServletResponseMapper().mapHttpResponseToHttpServletResponse(httpResponse, httpServletResponse);
+        new MockServerToHttpServletResponseMapper().mapMockServerResponseToHttpServletResponse(httpResponse, httpServletResponse);
 
         // then
         assertEquals(HttpStatusCode.OK_200.code(), httpServletResponse.getStatus());
         assertEquals("somebody", httpServletResponse.getContentAsString());
         assertEquals("headerValue1", httpServletResponse.getHeader("headerName1"));
         assertEquals("headerValue2", httpServletResponse.getHeader("headerName2"));
-        assertEquals("cookieValue1", httpServletResponse.getCookie("cookieName1").getValue());
-        assertEquals("cookieValue2", httpServletResponse.getCookie("cookieName2").getValue());
+        assertEquals(Arrays.asList(
+                "cookieName1=cookieValue1",
+                "cookieName2=cookieValue2"
+        ), httpServletResponse.getHeaders("Set-Cookie"));
     }
 
     @Test(expected = RuntimeException.class)
@@ -58,6 +61,6 @@ public class HttpServletResponseMapperTest {
         when(httpServletResponse.getOutputStream()).thenThrow(new IOException("TEST EXCEPTION"));
 
         // when
-        new HttpServletResponseMapper().mapHttpResponseToHttpServletResponse(httpResponse, httpServletResponse);
+        new MockServerToHttpServletResponseMapper().mapMockServerResponseToHttpServletResponse(httpResponse, httpServletResponse);
     }
 }

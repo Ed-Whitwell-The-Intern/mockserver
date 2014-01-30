@@ -1,24 +1,21 @@
 package org.mockserver.mappers;
 
-import org.mockserver.model.Cookie;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import org.apache.commons.lang3.StringUtils;
+import org.mockserver.model.*;
 import org.mockserver.streams.IOStreamUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
 /**
  * @author jamesdbloom
  */
-public class HttpServletRequestMapper {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    public HttpRequest mapHttpServletRequestToHttpRequest(HttpServletRequest httpServletRequest) {
+public class HttpServletToMockServerRequestMapper {
+    public HttpRequest mapHttpServletRequestToMockServerRequest(HttpServletRequest httpServletRequest) {
         HttpRequest httpRequest = new HttpRequest();
         setMethod(httpRequest, httpServletRequest);
         setUrl(httpRequest, httpServletRequest);
@@ -49,11 +46,13 @@ public class HttpServletRequestMapper {
     }
 
     private void setQueryString(HttpRequest httpRequest, HttpServletRequest httpServletRequest) {
-        httpRequest.withQueryString(httpServletRequest.getQueryString());
+        if (StringUtils.isNotEmpty(httpServletRequest.getQueryString())) {
+            httpRequest.withQueryStringParameters(new QueryStringDecoder("?" + httpServletRequest.getQueryString()).parameters());
+        }
     }
 
     private void setBody(HttpRequest httpRequest, HttpServletRequest httpServletRequest) {
-        httpRequest.withBody(IOStreamUtils.readInputStreamToString(httpServletRequest));
+        httpRequest.withBody(new StringBody(IOStreamUtils.readInputStreamToString(httpServletRequest), Body.Type.EXACT));
     }
 
     private void setHeaders(HttpRequest httpRequest, HttpServletRequest httpServletRequest) {

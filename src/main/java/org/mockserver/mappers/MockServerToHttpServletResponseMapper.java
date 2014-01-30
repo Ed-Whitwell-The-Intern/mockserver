@@ -1,21 +1,23 @@
 package org.mockserver.mappers;
 
-import org.mockserver.model.Cookie;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpResponse;
+import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.ServerCookieEncoder;
+import org.mockserver.model.*;
 import org.mockserver.streams.IOStreamUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.SET_COOKIE;
 
 /**
  * @author jamesdbloom
  */
-public class HttpServletResponseMapper {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class MockServerToHttpServletResponseMapper {
 
-    public void mapHttpResponseToHttpServletResponse(HttpResponse httpResponse, HttpServletResponse httpServletResponse) {
+    public void mapMockServerResponseToHttpServletResponse(HttpResponse httpResponse, HttpServletResponse httpServletResponse) {
         setStatusCode(httpResponse, httpServletResponse);
         setHeaders(httpResponse, httpServletResponse);
         setCookies(httpResponse, httpServletResponse);
@@ -42,7 +44,7 @@ public class HttpServletResponseMapper {
         if (httpResponse.getCookies() != null) {
             for (Cookie cookie : httpResponse.getCookies()) {
                 for (String value : cookie.getValues()) {
-                    httpServletResponse.addCookie(new javax.servlet.http.Cookie(cookie.getName(), value));
+                    httpServletResponse.addHeader(SET_COOKIE, ServerCookieEncoder.encode(new DefaultCookie(cookie.getName(), value)));
                 }
             }
         }
