@@ -1,11 +1,13 @@
-package org.mockserver.proxy.http;
+package org.mockserver.proxy.socks;
 
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.mockserver.client.proxy.ProxyClient;
 import org.mockserver.integration.testserver.TestServer;
-import org.mockserver.integration.proxy.AbstractClientSecureProxyIntegrationTest;
+import org.mockserver.integration.proxy.AbstractClientProxyIntegrationTest;
+import org.mockserver.proxy.http.HttpProxy;
 import org.mockserver.socket.PortFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,15 +15,16 @@ import org.slf4j.LoggerFactory;
 /**
  * @author jamesdbloom
  */
-public class NettyHttpProxyIntegrationTest extends AbstractClientSecureProxyIntegrationTest {
+@Ignore
+public class NettySocksProxyIntegrationTest extends AbstractClientProxyIntegrationTest {
 
-    private final static Logger logger = LoggerFactory.getLogger(NettyHttpProxyIntegrationTest.class);
+    private final static Logger logger = LoggerFactory.getLogger(NettySocksProxyIntegrationTest.class);
 
     private final static Integer SERVER_HTTP_PORT = PortFactory.findFreePort();
     private final static Integer SERVER_HTTPS_PORT = PortFactory.findFreePort();
     private final static Integer PROXY_HTTP_PORT = PortFactory.findFreePort();
     private final static Integer PROXY_HTTPS_PORT = PortFactory.findFreePort();
-    private final static Integer PROXY_SOCKS_PORT = null;
+    private final static Integer PROXY_SOCKS_PORT = PortFactory.findFreePort();
     private final static Integer PROXY_DIRECT_PORT = PortFactory.findFreePort();
     private final static Integer PROXY_DIRECT_SECURE_PORT = PortFactory.findFreePort();
     private static TestServer testServer = new TestServer();
