@@ -1,4 +1,4 @@
-package org.mockserver.proxy.http.socks;
+package org.mockserver.proxy.socks;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -6,16 +6,10 @@ import io.netty.handler.codec.socks.SocksAddressType;
 import io.netty.handler.codec.socks.SocksCmdRequest;
 import io.netty.handler.codec.socks.SocksCmdResponse;
 import io.netty.handler.codec.socks.SocksCmdStatus;
-import org.mockserver.proxy.http.relay.RelayConnectHandler;
-
-import java.net.InetSocketAddress;
+import org.mockserver.proxy.relay.RelayConnectHandler;
 
 @ChannelHandler.Sharable
 public final class SocksConnectHandler extends RelayConnectHandler<SocksCmdRequest> {
-
-    public SocksConnectHandler(InetSocketAddress connectSocket, boolean secure) {
-        super(connectSocket, secure);
-    }
 
     protected void removeCodecSupport(ChannelHandlerContext ctx) {
         ctx.pipeline().remove(this);

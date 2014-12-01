@@ -1,24 +1,18 @@
-package org.mockserver.proxy.http;
+package org.mockserver.proxy.socks;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.socks.*;
-import org.mockserver.proxy.http.socks.SocksConnectHandler;
+import org.mockserver.proxy.socks.SocksConnectHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.InetSocketAddress;
 
 public class SocksProxyHandler extends SimpleChannelInboundHandler<SocksRequest> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    // mockserver
-    private final InetSocketAddress connectSocket;
-    private final boolean secure;
 
-    public SocksProxyHandler(InetSocketAddress connectSocket, boolean secure) {
-        this.connectSocket = connectSocket;
-        this.secure = secure;
+    public SocksProxyHandler() {
+        super(false);
     }
 
     @Override
@@ -42,7 +36,7 @@ public class SocksProxyHandler extends SimpleChannelInboundHandler<SocksRequest>
                 SocksCmdRequest req = (SocksCmdRequest) socksRequest;
                 if (req.cmdType() == SocksCmdType.CONNECT) {
 
-                    ctx.pipeline().addLast(SocksConnectHandler.class.getSimpleName(), new SocksConnectHandler(connectSocket, secure));
+                    ctx.pipeline().addLast(new SocksConnectHandler());
                     ctx.pipeline().remove(this);
                     ctx.fireChannelRead(socksRequest);
 
