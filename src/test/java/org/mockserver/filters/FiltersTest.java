@@ -1,9 +1,6 @@
-package org.mockserver.proxy.filters;
+package org.mockserver.filters;
 
 import org.junit.Test;
-import org.mockserver.filters.Filters;
-import org.mockserver.filters.RequestFilter;
-import org.mockserver.filters.ResponseFilter;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 

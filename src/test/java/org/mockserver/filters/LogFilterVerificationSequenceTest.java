@@ -1,7 +1,6 @@
-package org.mockserver.proxy.filters;
+package org.mockserver.filters;
 
 import org.junit.Test;
-import org.mockserver.filters.LogFilter;
 import org.mockserver.verify.VerificationSequence;
 
 import static org.hamcrest.CoreMatchers.is;

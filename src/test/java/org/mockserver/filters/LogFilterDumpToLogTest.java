@@ -1,11 +1,10 @@
-package org.mockserver.proxy.filters;
+package org.mockserver.filters;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockserver.client.serialization.ExpectationSerializer;
-import org.mockserver.filters.LogFilter;
 import org.mockserver.matchers.Times;
 import org.mockserver.mock.Expectation;
 import org.mockserver.model.HttpRequest;

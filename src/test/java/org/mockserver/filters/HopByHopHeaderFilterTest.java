@@ -1,7 +1,6 @@
-package org.mockserver.proxy.filters;
+package org.mockserver.filters;
 
 import org.junit.Test;
-import org.mockserver.filters.HopByHopHeaderFilter;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 

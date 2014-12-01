@@ -1,7 +1,6 @@
-package org.mockserver.proxy.filters;
+package org.mockserver.filters;
 
 import org.junit.Test;
-import org.mockserver.filters.LogFilter;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.verify.Verification;
 
@@ -28,7 +27,7 @@ public class LogFilterVerificationTest {
         logFilter.onRequest(httpRequest);
 
         // then
-        assertThat(logFilter.verify((Verification)null), is(""));
+        assertThat(logFilter.verify((Verification) null), is(""));
     }
 
     @Test
@@ -162,7 +161,7 @@ public class LogFilterVerificationTest {
         LogFilter logFilter = new LogFilter();
 
         // then
-        assertThat(logFilter.verify((Verification)null), is(""));
+        assertThat(logFilter.verify((Verification) null), is(""));
     }
 
     @Test
