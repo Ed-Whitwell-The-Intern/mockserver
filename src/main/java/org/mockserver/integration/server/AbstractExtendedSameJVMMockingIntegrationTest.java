@@ -22,7 +22,7 @@ import static org.mockserver.model.HttpTemplate.template;
 /**
  * @author jamesdbloom
  */
-public abstract class SameJVMAbstractClientServerIntegrationTest extends AbstractExtendedClientServerIntegrationTest {
+public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends AbstractExtendedMockingIntegrationTest {
 
     @Test // same JVM due to dynamic calls to static class
     public void shouldCallbackToSpecifiedClassWithDynamicResponse() {

@@ -57,7 +57,7 @@ import static org.mockserver.model.XmlSchemaBody.xmlSchemaFromResource;
 /**
  * @author jamesdbloom
  */
-public abstract class AbstractExtendedClientServerIntegrationTest extends AbstractBasicClientServerIntegrationTest {
+public abstract class AbstractExtendedMockingIntegrationTest extends AbstractBasicMockingIntegrationTest {
 
     @Test
     public void shouldReturnResponseForRequestInSsl() {

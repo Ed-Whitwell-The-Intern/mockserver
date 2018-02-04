@@ -39,7 +39,7 @@ import static org.mockserver.model.StringBody.exact;
 /**
  * @author jamesdbloom
  */
-public abstract class AbstractBasicClientServerIntegrationTest extends AbstractServerIntegrationTestBase {
+public abstract class AbstractBasicMockingIntegrationTest extends AbstractMockingIntegrationTestBase {
 
     @Test
     public void shouldForwardRequestInHTTP() {
@@ -1340,7 +1340,18 @@ public abstract class AbstractBasicClientServerIntegrationTest extends AbstractS
                 " matched expectation:" + NEW_LINE +
                     NEW_LINE +
                     "\t{" + NEW_LINE +
-                    "\t  \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  \"httpRequest\" : {" + NEW_LINE +
+                    "\t    \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"times\" : {" + NEW_LINE +
+                    "\t    \"remainingTimes\" : 4" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"timeToLive\" : {" + NEW_LINE +
+                    "\t    \"unlimited\" : true" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"httpResponse\" : {" + NEW_LINE +
+                    "\t    \"body\" : \"some_body\"" + NEW_LINE +
+                    "\t  }" + NEW_LINE +
                     "\t}"
             },
             new String[]{
@@ -1421,7 +1432,18 @@ public abstract class AbstractBasicClientServerIntegrationTest extends AbstractS
                 " matched expectation:" + NEW_LINE +
                     NEW_LINE +
                     "\t{" + NEW_LINE +
-                    "\t  \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  \"httpRequest\" : {" + NEW_LINE +
+                    "\t    \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"times\" : {" + NEW_LINE +
+                    "\t    \"remainingTimes\" : 3" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"timeToLive\" : {" + NEW_LINE +
+                    "\t    \"unlimited\" : true" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"httpResponse\" : {" + NEW_LINE +
+                    "\t    \"body\" : \"some_body\"" + NEW_LINE +
+                    "\t  }" + NEW_LINE +
                     "\t}"
             },
             new String[]{

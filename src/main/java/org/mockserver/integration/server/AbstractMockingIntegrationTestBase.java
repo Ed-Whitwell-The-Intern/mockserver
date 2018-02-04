@@ -6,7 +6,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.mockserver.client.netty.NettyHttpClient;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.logging.MockServerLogger;
 import org.mockserver.matchers.HttpRequestMatcher;
 import org.mockserver.model.*;
@@ -35,7 +35,7 @@ import static org.mockserver.model.StringBody.exact;
 /**
  * @author jamesdbloom
  */
-public abstract class AbstractServerIntegrationTestBase {
+public abstract class AbstractMockingIntegrationTestBase {
 
     protected static MockServerClient mockServerClient;
     protected static String servletContext = "";
