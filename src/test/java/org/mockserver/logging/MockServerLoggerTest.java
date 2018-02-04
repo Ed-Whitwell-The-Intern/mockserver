@@ -18,7 +18,7 @@ import static org.mockserver.character.Character.NEW_LINE;
 import static org.mockserver.configuration.ConfigurationProperties.logLevel;
 import static org.mockserver.model.HttpRequest.request;
 
-public class LogFormatterTest {
+public class MockServerLoggerTest {
 
     @Test
     public void shouldFormatInfoLogMessagesForRequest() {
