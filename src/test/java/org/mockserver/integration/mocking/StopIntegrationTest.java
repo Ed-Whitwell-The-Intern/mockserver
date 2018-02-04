@@ -1,7 +1,7 @@
-package org.mockserver.integration.mockserver;
+package org.mockserver.integration.mocking;
 
 import org.junit.Test;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.mockserver.MockServer;
 import org.mockserver.socket.PortFactory;
 
@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author jamesdbloom
  */
-public class MockServerStopTest {
+public class StopIntegrationTest {
 
     private final static int MOCK_SERVER_PORT = PortFactory.findFreePort();
 

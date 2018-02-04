@@ -5,9 +5,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockserver.echo.http.EchoServer;
-import org.mockserver.proxy.Proxy;
-import org.mockserver.proxy.ProxyBuilder;
-import org.mockserver.socket.PortFactory;
+import org.mockserver.mockserver.MockServer;
 import org.mockserver.streams.IOStreamUtils;
 
 import java.io.OutputStream;
@@ -18,38 +16,34 @@ import static org.mockserver.test.Assert.assertContains;
 /**
  * @author jamesdbloom
  */
-public class NettyDirectProxyIntegrationTest {
+public class NettyPortForwardingProxyIntegrationTest {
 
-    private final static Integer PROXY_DIRECT_PORT = PortFactory.findFreePort();
     private static EchoServer echoServer;
-    private static Proxy httpProxy;
+    private static MockServer mockServer;
 
     @BeforeClass
     public static void setupFixture() {
-        // start echo server
         echoServer = new EchoServer(false);
 
-        // start proxy
-        httpProxy = new ProxyBuilder()
-            .withLocalPort(PROXY_DIRECT_PORT)
-            .withDirect("127.0.0.1", echoServer.getPort())
-            .build();
+        mockServer = new MockServer("127.0.0.1", echoServer.getPort(), 0);
     }
 
     @AfterClass
     public static void shutdownFixture() {
-        // stop echo server
-        echoServer.stop();
+        if (echoServer != null) {
+            echoServer.stop();
+        }
 
-        // stop proxy
-        httpProxy.stop();
+        if (mockServer != null) {
+            mockServer.stop();
+        }
     }
 
     @Test
     public void shouldForwardRequestsUsingSocketDirectlyHeadersOnly() throws Exception {
         Socket socket = null;
         try {
-            socket = new Socket("localhost", PROXY_DIRECT_PORT);
+            socket = new Socket("localhost", mockServer.getLocalPort());
 
             // given
             OutputStream output = socket.getOutputStream();
@@ -78,7 +72,7 @@ public class NettyDirectProxyIntegrationTest {
         Socket socket = null;
         try {
 
-            socket = new Socket("localhost", PROXY_DIRECT_PORT);
+            socket = new Socket("localhost", mockServer.getLocalPort());
 
             // given
             OutputStream output = socket.getOutputStream();
@@ -110,7 +104,7 @@ public class NettyDirectProxyIntegrationTest {
         Socket socket = null;
         try {
 
-            socket = new Socket("localhost", PROXY_DIRECT_PORT);
+            socket = new Socket("localhost", mockServer.getLocalPort());
 
             // given
             OutputStream output = socket.getOutputStream();

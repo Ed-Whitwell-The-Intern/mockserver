@@ -1,14 +1,14 @@
-package org.mockserver.integration.mockserver;
+package org.mockserver.integration.mocking;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.echo.http.EchoServer;
-import org.mockserver.integration.server.AbstractBasicClientServerIntegrationTest;
+import org.mockserver.integration.server.AbstractBasicMockingIntegrationTest;
 import org.mockserver.mock.Expectation;
+import org.mockserver.mockserver.MockServer;
 import org.mockserver.model.HttpStatusCode;
-import org.mockserver.proxy.ProxyBuilder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -29,7 +29,7 @@ import static org.mockserver.model.StringBody.exact;
 /**
  * @author jamesdbloom
  */
-public class ClientAndDirectProxyMockingIntegrationTest extends AbstractBasicClientServerIntegrationTest {
+public class PortForwardingMockingIntegrationTest extends AbstractBasicMockingIntegrationTest {
 
     private static int mockServerPort;
     private static EchoServer echoServer;
@@ -37,19 +37,21 @@ public class ClientAndDirectProxyMockingIntegrationTest extends AbstractBasicCli
     @BeforeClass
     public static void startServer() {
         echoServer = new EchoServer(false);
-        mockServerPort = new ProxyBuilder()
-            .withLocalPort(0)
-            .withDirect("localhost", echoServer.getPort())
-            .build().getPort();
+        mockServerPort = new MockServer("localhost", echoServer.getPort(), 0)
+            .getLocalPort();
 
         mockServerClient = new MockServerClient("localhost", mockServerPort);
     }
 
     @AfterClass
     public static void stopServer() {
-        mockServerClient.stop();
+        if (mockServerClient != null) {
+            mockServerClient.stop();
+        }
 
-        echoServer.stop();
+        if (echoServer != null) {
+            echoServer.stop();
+        }
     }
 
     @Override
@@ -332,7 +334,18 @@ public class ClientAndDirectProxyMockingIntegrationTest extends AbstractBasicCli
                 " matched expectation:" + NEW_LINE +
                     NEW_LINE +
                     "\t{" + NEW_LINE +
-                    "\t  \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  \"httpRequest\" : {" + NEW_LINE +
+                    "\t    \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"times\" : {" + NEW_LINE +
+                    "\t    \"remainingTimes\" : 4" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"timeToLive\" : {" + NEW_LINE +
+                    "\t    \"unlimited\" : true" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"httpResponse\" : {" + NEW_LINE +
+                    "\t    \"body\" : \"some_body\"" + NEW_LINE +
+                    "\t  }" + NEW_LINE +
                     "\t}"
             },
             new String[]{
@@ -412,7 +425,18 @@ public class ClientAndDirectProxyMockingIntegrationTest extends AbstractBasicCli
                 " matched expectation:" + NEW_LINE +
                     NEW_LINE +
                     "\t{" + NEW_LINE +
-                    "\t  \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  \"httpRequest\" : {" + NEW_LINE +
+                    "\t    \"path\" : \"/some_path.*\"" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"times\" : {" + NEW_LINE +
+                    "\t    \"remainingTimes\" : 3" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"timeToLive\" : {" + NEW_LINE +
+                    "\t    \"unlimited\" : true" + NEW_LINE +
+                    "\t  }," + NEW_LINE +
+                    "\t  \"httpResponse\" : {" + NEW_LINE +
+                    "\t    \"body\" : \"some_body\"" + NEW_LINE +
+                    "\t  }" + NEW_LINE +
                     "\t}"
             },
             new String[]{

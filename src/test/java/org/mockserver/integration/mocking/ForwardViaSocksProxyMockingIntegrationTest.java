@@ -1,12 +1,11 @@
-package org.mockserver.integration.mockserver;
+package org.mockserver.integration.mocking;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.mockserver.client.netty.proxy.ProxyConfiguration;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.echo.http.EchoServer;
-import org.mockserver.integration.server.AbstractBasicClientServerIntegrationTest;
+import org.mockserver.integration.server.AbstractBasicMockingIntegrationTest;
 import org.mockserver.mockserver.MockServer;
 
 import static org.mockserver.client.netty.proxy.ProxyConfiguration.proxyConfiguration;
@@ -15,7 +14,7 @@ import static org.mockserver.client.netty.proxy.ProxyConfiguration.proxyConfigur
  * @author jamesdbloom
  */
 //@Ignore
-public class ClientViaHttpsProxyIntegrationTest extends AbstractBasicClientServerIntegrationTest {
+public class ForwardViaSocksProxyMockingIntegrationTest extends AbstractBasicMockingIntegrationTest {
 
     private static MockServer mockServer;
     private static MockServer proxy;
@@ -25,30 +24,36 @@ public class ClientViaHttpsProxyIntegrationTest extends AbstractBasicClientServe
     public static void startServer() {
         proxy = new MockServer();
 
-        mockServer = new MockServer(proxyConfiguration(ProxyConfiguration.Type.HTTPS, "127.0.0.1:" + String.valueOf(proxy.getPort())));
+        mockServer = new MockServer(proxyConfiguration(ProxyConfiguration.Type.SOCKS5, "127.0.0.1:" + String.valueOf(proxy.getLocalPort())));
 
         echoServer = new EchoServer(false);
 
-        mockServerClient = new MockServerClient("localhost", mockServer.getPort(), servletContext);
+        mockServerClient = new MockServerClient("localhost", mockServer.getLocalPort(), servletContext);
     }
 
     @AfterClass
     public static void stopServer() {
-        proxy.stop();
+        if (proxy != null) {
+            proxy.stop();
+        }
 
-        mockServer.stop();
+        if (mockServer != null) {
+            mockServer.stop();
+        }
 
-        echoServer.stop();
+        if (echoServer != null) {
+            echoServer.stop();
+        }
     }
 
     @Override
     public int getMockServerPort() {
-        return mockServer.getPort();
+        return mockServer.getLocalPort();
     }
 
     @Override
     public int getMockServerSecurePort() {
-        return mockServer.getPort();
+        return mockServer.getLocalPort();
     }
 
     @Override

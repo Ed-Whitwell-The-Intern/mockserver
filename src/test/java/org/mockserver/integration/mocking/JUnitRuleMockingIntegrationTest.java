@@ -1,22 +1,23 @@
-package org.mockserver.integration.mockserver;
+package org.mockserver.integration.mocking;
 
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.mockserver.echo.http.EchoServer;
-import org.mockserver.integration.server.AbstractBasicClientServerIntegrationTest;
+import org.mockserver.integration.server.AbstractBasicMockingIntegrationTest;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.socket.PortFactory;
 
 /**
  * @author jamesdbloom
  */
-public class MockServerRuleIntegrationTest extends AbstractBasicClientServerIntegrationTest {
+public class JUnitRuleMockingIntegrationTest extends AbstractBasicMockingIntegrationTest {
 
     // used fixed port for rule for all tests to ensure MockServer has been shutdown fully between each test
     private static final int MOCK_SERVER_PORT = PortFactory.findFreePort();
     private static EchoServer echoServer;
+
     @Rule
     public MockServerRule mockServerRule = new MockServerRule(this, MOCK_SERVER_PORT);
 

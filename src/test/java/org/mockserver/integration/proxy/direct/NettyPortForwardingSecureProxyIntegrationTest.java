@@ -4,11 +4,9 @@ import com.google.common.base.Charsets;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockserver.client.proxy.ProxyClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.echo.http.EchoServer;
-import org.mockserver.proxy.Proxy;
-import org.mockserver.proxy.ProxyBuilder;
-import org.mockserver.socket.PortFactory;
+import org.mockserver.mockserver.MockServer;
 import org.mockserver.streams.IOStreamUtils;
 
 import java.io.OutputStream;
@@ -22,42 +20,37 @@ import static org.mockserver.verify.VerificationTimes.exactly;
 /**
  * @author jamesdbloom
  */
-public class NettyDirectSecureProxyIntegrationTest {
+public class NettyPortForwardingSecureProxyIntegrationTest {
 
-    private final static Integer PROXY_DIRECT_SECURE_PORT = PortFactory.findFreePort();
     private static EchoServer echoServer;
-    private static Proxy httpProxy;
-    private static ProxyClient proxyClient;
+    private static MockServer mockServer;
+    private static MockServerClient mockServerClient;
 
     @BeforeClass
     public static void setupFixture() {
-        // start server
         echoServer = new EchoServer(true);
 
-        // start proxy
-        httpProxy = new ProxyBuilder()
-            .withLocalPort(PROXY_DIRECT_SECURE_PORT)
-            .withDirect("127.0.0.1", echoServer.getPort())
-            .build();
+        mockServer = new MockServer("127.0.0.1", echoServer.getPort());
 
-        // start client
-        proxyClient = new ProxyClient("localhost", PROXY_DIRECT_SECURE_PORT);
+        mockServerClient = new MockServerClient("localhost", mockServer.getLocalPort());
     }
 
     @AfterClass
     public static void shutdownFixture() {
-        // stop server
-        echoServer.stop();
+        if (echoServer != null) {
+            echoServer.stop();
+        }
 
-        // stop proxy
-        httpProxy.stop();
+        if (mockServer != null) {
+            mockServer.stop();
+        }
     }
 
     @Test
     public void shouldForwardRequestsUsingSocketDirectlyHeadersOnly() throws Exception {
         Socket socket = null;
         try {
-            socket = sslSocketFactory().wrapSocket(new Socket("localhost", PROXY_DIRECT_SECURE_PORT));
+            socket = sslSocketFactory().wrapSocket(new Socket("localhost", mockServer.getLocalPort()));
 
             // given
             OutputStream output = socket.getOutputStream();
@@ -76,7 +69,7 @@ public class NettyDirectSecureProxyIntegrationTest {
             assertContains(IOStreamUtils.readInputStreamToString(socket), "X-Test: test_headers_only");
 
             // and
-            proxyClient.verify(
+            mockServerClient.verify(
                 request()
                     .withMethod("GET")
                     .withPath("/test_headers_only"),
@@ -94,7 +87,7 @@ public class NettyDirectSecureProxyIntegrationTest {
         Socket socket = null;
         try {
 
-            socket = sslSocketFactory().wrapSocket(new Socket("localhost", PROXY_DIRECT_SECURE_PORT));
+            socket = sslSocketFactory().wrapSocket(new Socket("localhost", mockServer.getLocalPort()));
 
             // given
             OutputStream output = socket.getOutputStream();
@@ -116,7 +109,7 @@ public class NettyDirectSecureProxyIntegrationTest {
             assertContains(response, "an_example_body");
 
             // and
-            proxyClient.verify(
+            mockServerClient.verify(
                 request()
                     .withMethod("GET")
                     .withPath("/test_headers_and_body")
@@ -135,7 +128,7 @@ public class NettyDirectSecureProxyIntegrationTest {
         Socket socket = null;
         try {
 
-            socket = sslSocketFactory().wrapSocket(new Socket("localhost", PROXY_DIRECT_SECURE_PORT));
+            socket = sslSocketFactory().wrapSocket(new Socket("localhost", mockServer.getLocalPort()));
 
             // given
             OutputStream output = socket.getOutputStream();
@@ -152,7 +145,7 @@ public class NettyDirectSecureProxyIntegrationTest {
             assertContains(IOStreamUtils.readInputStreamToString(socket), "HTTP/1.1 404 Not Found");
 
             // and
-            proxyClient.verify(
+            mockServerClient.verify(
                 request()
                     .withMethod("GET")
                     .withPath("/not_found"),

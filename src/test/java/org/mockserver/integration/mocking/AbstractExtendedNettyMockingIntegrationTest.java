@@ -1,11 +1,11 @@
-package org.mockserver.integration.mockserver;
+package org.mockserver.integration.mocking;
 
 import com.google.common.base.Charsets;
 import com.google.common.net.MediaType;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.mockserver.echo.http.EchoServer;
-import org.mockserver.integration.server.SameJVMAbstractClientServerIntegrationTest;
+import org.mockserver.integration.server.AbstractExtendedSameJVMMockingIntegrationTest;
 import org.mockserver.logging.MockServerLogger;
 import org.mockserver.matchers.MatcherBuilder;
 import org.mockserver.mock.action.ExpectationForwardCallback;
@@ -51,7 +51,7 @@ import static org.mockserver.socket.SSLSocketFactory.sslSocketFactory;
 /**
  * @author jamesdbloom
  */
-public abstract class AbstractMockServerNettyIntegrationTest extends SameJVMAbstractClientServerIntegrationTest {
+public abstract class AbstractExtendedNettyMockingIntegrationTest extends AbstractExtendedSameJVMMockingIntegrationTest {
 
     @Test
     public void shouldRespondByObjectCallback() {

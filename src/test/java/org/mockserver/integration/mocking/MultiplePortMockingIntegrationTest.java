@@ -1,4 +1,4 @@
-package org.mockserver.integration.mockserver;
+package org.mockserver.integration.mocking;
 
 import com.google.common.base.Joiner;
 import org.junit.AfterClass;
@@ -6,7 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockserver.echo.http.EchoServer;
 import org.mockserver.integration.ClientAndServer;
-import org.mockserver.integration.server.AbstractBasicClientServerIntegrationTest;
+import org.mockserver.integration.server.AbstractBasicMockingIntegrationTest;
 import org.mockserver.socket.PortFactory;
 
 import java.util.List;
@@ -23,7 +23,7 @@ import static org.mockserver.model.HttpStatusCode.OK_200;
 /**
  * @author jamesdbloom
  */
-public class MockServerMultiplePortIntegrationTest extends AbstractBasicClientServerIntegrationTest {
+public class MultiplePortMockingIntegrationTest extends AbstractBasicMockingIntegrationTest {
 
     private static Integer[] severHttpPort;
     private static EchoServer echoServer;
@@ -32,7 +32,7 @@ public class MockServerMultiplePortIntegrationTest extends AbstractBasicClientSe
     @BeforeClass
     public static void startServer() {
         mockServerClient = startClientAndServer(0, PortFactory.findFreePort(), 0, PortFactory.findFreePort());
-        List<Integer> boundPorts = ((ClientAndServer) mockServerClient).getPorts();
+        List<Integer> boundPorts = ((ClientAndServer) mockServerClient).getLocalPorts();
         severHttpPort = boundPorts.toArray(new Integer[boundPorts.size()]);
 
         echoServer = new EchoServer(false);
@@ -40,9 +40,13 @@ public class MockServerMultiplePortIntegrationTest extends AbstractBasicClientSe
 
     @AfterClass
     public static void stopServer() {
-        mockServerClient.stop();
+        if (mockServerClient != null) {
+            mockServerClient.stop();
+        }
 
-        echoServer.stop();
+        if (echoServer != null) {
+            echoServer.stop();
+        }
     }
 
     @Override
