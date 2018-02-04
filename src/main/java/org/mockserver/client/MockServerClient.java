@@ -2,12 +2,14 @@ package org.mockserver.client;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.util.concurrent.SettableFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.mockserver.Version;
 import org.mockserver.client.netty.NettyHttpClient;
 import org.mockserver.client.netty.SocketConnectionException;
 import org.mockserver.client.serialization.*;
 import org.mockserver.configuration.ConfigurationProperties;
+import org.mockserver.formatting.StringFormatter;
 import org.mockserver.logging.MockServerLogger;
 import org.mockserver.matchers.TimeToLive;
 import org.mockserver.matchers.Times;
@@ -17,14 +19,15 @@ import org.mockserver.verify.Verification;
 import org.mockserver.verify.VerificationSequence;
 import org.mockserver.verify.VerificationTimes;
 
-import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.HOST;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static org.mockserver.character.Character.NEW_LINE;
+import static org.mockserver.formatting.StringFormatter.formatLogMessage;
 import static org.mockserver.mock.HttpStateHandler.LOG_SEPARATOR;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.PortBinding.portBinding;
@@ -34,14 +37,14 @@ import static org.mockserver.verify.VerificationTimes.exactly;
 /**
  * @author jamesdbloom
  */
-public abstract class AbstractClient<T extends AbstractClient> implements Closeable {
+public class MockServerClient implements java.io.Closeable {
 
     protected final MockServerLogger mockServerLogger = new MockServerLogger(this.getClass());
-
-    protected final String host;
-    protected final int port;
+    protected Future<Integer> portFuture;
+    private final String host;
     private final String contextPath;
-    private final Class<T> clientClass;
+    private final Class<MockServerClient> clientClass;
+    private Integer port;
     private NettyHttpClient nettyHttpClient = new NettyHttpClient();
     private HttpRequestSerializer httpRequestSerializer = new HttpRequestSerializer(mockServerLogger);
     private PortBindingSerializer portBindingSerializer = new PortBindingSerializer(mockServerLogger);
@@ -49,18 +52,45 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
     private VerificationSerializer verificationSerializer = new VerificationSerializer(mockServerLogger);
     private VerificationSequenceSerializer verificationSequenceSerializer = new VerificationSequenceSerializer(mockServerLogger);
 
+
     /**
-     * Start the client communicating to the proxy at the specified host and port
-     * and contextPath for example:
-     * <p>
-     * ProxyClient mockServerClient = new ProxyClient("localhost", 1080, "/proxy");
+     * Start the client communicating to a MockServer on localhost at the port
+     * specified with the Future
      *
-     * @param host        the host for the proxy to communicate with
-     * @param port        the port for the proxy to communicate with
-     * @param contextPath the context path that the proxy war is deployed to
+     * @param portFuture the port for the MockServer to communicate with
      */
-    protected AbstractClient(String host, int port, String contextPath, Class<T> clientClass) {
-        this.clientClass = clientClass;
+    public MockServerClient(Future<Integer> portFuture) {
+        this.clientClass = MockServerClient.class;
+        this.host = "127.0.0.1";
+        this.portFuture = portFuture;
+        this.contextPath = "";
+    }
+
+    /**
+     * Start the client communicating to a MockServer at the specified host and port
+     * for example:
+     *
+     * MockServerClient mockServerClient = new MockServerClient("localhost", 1080);
+     *
+     * @param host the host for the MockServer to communicate with
+     * @param port the port for the MockServer to communicate with
+     */
+    public MockServerClient(String host, int port) {
+        this(host, port, "");
+    }
+
+    /**
+     * Start the client communicating to a MockServer at the specified host and port
+     * and contextPath for example:
+     *
+     * MockServerClient mockServerClient = new MockServerClient("localhost", 1080, "/mockserver");
+     *
+     * @param host        the host for the MockServer to communicate with
+     * @param port        the port for the MockServer to communicate with
+     * @param contextPath the context path that the MockServer war is deployed to
+     */
+    public MockServerClient(String host, int port, String contextPath) {
+        this.clientClass = MockServerClient.class;
         if (StringUtils.isEmpty(host)) {
             throw new IllegalArgumentException("Host can not be null or empty");
         }
@@ -70,6 +100,25 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
         this.host = host;
         this.port = port;
         this.contextPath = contextPath;
+    }
+
+    private int port() {
+        if (this.port == null) {
+            try {
+                port = portFuture.get();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return this.port;
+    }
+
+    public InetSocketAddress remoteAddress() {
+        return new InetSocketAddress(this.host, port());
+    }
+
+    public String contextPath() {
+        return contextPath;
     }
 
     private String calculatePath(String path) {
@@ -86,7 +135,7 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
 
     private HttpResponse sendRequest(HttpRequest request) {
         HttpResponse response = nettyHttpClient.sendRequest(
-            request.withHeader(HOST.toString(), host + ":" + port),
+            request.withHeader(HOST.toString(), this.host + ":" + port()),
             ConfigurationProperties.maxSocketTimeout(),
             TimeUnit.MILLISECONDS
         );
@@ -106,31 +155,15 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
         return response;
     }
 
-    private String formatErrorMessage(String message, Object... objects) {
-        Object[] indentedObjects = new String[objects.length];
-        for (int i = 0; i < objects.length; i++) {
-            indentedObjects[i] = NEW_LINE + NEW_LINE + String.valueOf(objects[i]).replaceAll("(?m)^", "\t") + NEW_LINE;
-        }
-        return String.format(NEW_LINE + message + NEW_LINE, indentedObjects);
-    }
-
-    public InetSocketAddress remoteAddress() {
-        return new InetSocketAddress(host, port);
-    }
-
-    public String contextPath() {
-        return contextPath;
-    }
-
     /**
-     * Returns the server (MockServer or Proxy) is running
+     * Returns whether MockServer is running
      */
     public boolean isRunning() {
         return isRunning(10, 500, TimeUnit.MILLISECONDS);
     }
 
     /**
-     * Returns the server (MockServer or Proxy) is running, by polling the MockServer a configurable amount of times
+     * Returns whether server MockServer is running, by polling the MockServer a configurable amount of times
      */
     public boolean isRunning(int attempts, long timeout, TimeUnit timeUnit) {
         try {
@@ -161,16 +194,16 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
     }
 
     /**
-     * Stop server (MockServer or Proxy) gracefully (only support for Netty version, not supported for WAR version)
+     * Stop MockServer gracefully (only support for Netty version, not supported for WAR version)
      */
-    public T stop() {
+    public MockServerClient stop() {
         return stop(false);
     }
 
     /**
-     * Stop server (MockServer or Proxy) gracefully (only support for Netty version, not supported for WAR version)
+     * Stop MockServer gracefully (only support for Netty version, not supported for WAR version)
      */
-    public T stop(boolean ignoreFailure) {
+    public MockServerClient stop(boolean ignoreFailure) {
         try {
             sendRequest(request().withMethod("PUT").withPath(calculatePath("stop")));
             if (isRunning()) {
@@ -192,9 +225,9 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
     }
 
     /**
-     * Reset server (MockServer or Proxy) by clearing all expectations
+     * Reset MockServer by clearing all expectations
      */
-    public T reset() {
+    public MockServerClient reset() {
         sendRequest(request().withMethod("PUT").withPath(calculatePath("reset")));
         return clientClass.cast(this);
     }
@@ -204,7 +237,7 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
      *
      * @param httpRequest the http request that is matched against when deciding whether to clear each expectation if null all expectations are cleared
      */
-    public T clear(HttpRequest httpRequest) {
+    public MockServerClient clear(HttpRequest httpRequest) {
         sendRequest(request().withMethod("PUT").withPath(calculatePath("clear")).withBody(httpRequest != null ? httpRequestSerializer.serialize(httpRequest) : "", Charsets.UTF_8));
         return clientClass.cast(this);
     }
@@ -215,28 +248,29 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
      * @param httpRequest the http request that is matched against when deciding whether to clear each expectation if null all expectations are cleared
      * @param type        the type to clear, EXPECTATION, LOG or BOTH
      */
-    public T clear(HttpRequest httpRequest, ClearType type) {
+    public MockServerClient clear(HttpRequest httpRequest, ClearType type) {
         sendRequest(request().withMethod("PUT").withPath(calculatePath("clear")).withQueryStringParameter("type", type.name().toLowerCase()).withBody(httpRequest != null ? httpRequestSerializer.serialize(httpRequest) : "", Charsets.UTF_8));
         return clientClass.cast(this);
     }
 
     /**
      * Verify a list of requests have been sent in the order specified for example:
-     * <p>
+     * <pre>
      * mockServerClient
-     * .verify(
-     * request()
-     * .withPath("/first_request")
-     * .withBody("some_request_body"),
-     * request()
-     * .withPath("/second_request")
-     * .withBody("some_request_body")
-     * );
+     *  .verify(
+     *      request()
+     *          .withPath("/first_request")
+     *          .withBody("some_request_body"),
+     *      request()
+     *          .withPath("/second_request")
+     *          .withBody("some_request_body")
+     *  );
+     * </pre>
      *
      * @param httpRequests the http requests that must be matched for this verification to pass
      * @throws AssertionError if the request has not been found
      */
-    public T verify(HttpRequest... httpRequests) throws AssertionError {
+    public MockServerClient verify(HttpRequest... httpRequests) throws AssertionError {
         if (httpRequests == null || httpRequests.length == 0 || httpRequests[0] == null) {
             throw new IllegalArgumentException("verify(HttpRequest...) requires a non null non empty array of HttpRequest objects");
         }
@@ -252,17 +286,17 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
 
     /**
      * Verify a request has been sent for example:
-     * <p>
+     * <pre>
      * mockServerClient
-     * .verify(
-     * request()
-     * .withPath("/some_path")
-     * .withBody("some_request_body"),
-     * VerificationTimes.exactly(3)
-     * );
-     * <p>
+     *  .verify(
+     *      request()
+     *          .withPath("/some_path")
+     *          .withBody("some_request_body"),
+     *      VerificationTimes.exactly(3)
+     *  );
+     * </pre>
      * VerificationTimes supports multiple static factory methods:
-     * <p>
+     *
      * once()      - verify the request was only received once
      * exactly(n)  - verify the request was only received exactly n times
      * atLeast(n)  - verify the request was only received at least n times
@@ -271,7 +305,7 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
      * @param times       the number of times this request must be matched
      * @throws AssertionError if the request has not been found
      */
-    public T verify(HttpRequest httpRequest, VerificationTimes times) throws AssertionError {
+    public MockServerClient verify(HttpRequest httpRequest, VerificationTimes times) throws AssertionError {
         if (httpRequest == null) {
             throw new IllegalArgumentException("verify(HttpRequest, VerificationTimes) requires a non null HttpRequest object");
         }
@@ -293,7 +327,7 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
      *
      * @throws AssertionError if any request has been found
      */
-    public T verifyZeroInteractions() throws AssertionError {
+    public MockServerClient verifyZeroInteractions() throws AssertionError {
         Verification verification = verification().withRequest(request()).withTimes(exactly(0));
         String result = sendRequest(request().withMethod("PUT").withPath(calculatePath("verify")).withBody(verificationSerializer.serialize(verification), Charsets.UTF_8)).getBodyAsString();
 
@@ -401,10 +435,19 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
     /**
      * Specify an unlimited expectation that will respond regardless of the number of matching http
      * for example:
-     * <p>
+     * <pre>
      * mockServerClient
-     * .when(request().withPath("/some_path").withBody("some_request_body"))
-     * .respond(response().withBody("some_response_body").withHeader("responseName", "responseValue"))
+     *  .when(
+     *      request()
+     *          .withPath("/some_path")
+     *          .withBody("some_request_body")
+     *  )
+     *  .respond(
+     *      response()
+     *          .withBody("some_response_body")
+     *          .withHeader("responseName", "responseValue")
+     *  )
+     * </pre>
      *
      * @param httpRequest the http request that must be matched for this expectation to respond
      * @return an Expectation object that can be used to specify the response
@@ -416,10 +459,20 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
     /**
      * Specify an limited expectation that will respond a specified number of times when the http is matched
      * for example:
-     * <p>
+     * <pre>
      * mockServerClient
-     * .when(request().withPath("/some_path").withBody("some_request_body"), Times.exactly(5))
-     * .respond(response().withBody("some_response_body").withHeader("responseName", "responseValue"))
+     *  .when(
+     *      request()
+     *          .withPath("/some_path")
+     *          .withBody("some_request_body"),
+     *      Times.exactly(5)
+     *  )
+     *  .respond(
+     *      response()
+     *          .withBody("some_response_body")
+     *          .withHeader("responseName", "responseValue")
+     *  )
+     * </pre>
      *
      * @param httpRequest the http request that must be matched for this expectation to respond
      * @param times       the number of times to respond when this http is matched
@@ -432,10 +485,21 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
     /**
      * Specify an limited expectation that will respond a specified number of times when the http is matched
      * for example:
-     * <p>
+     * <pre>
      * mockServerClient
-     * .when(request().withPath("/some_path").withBody("some_request_body"), Times.exactly(5), TimeToLive.exactly(TimeUnit.SECONDS, 120))
-     * .respond(response().withBody("some_response_body").withHeader("responseName", "responseValue"))
+     *  .when(
+     *      request()
+     *          .withPath("/some_path")
+     *          .withBody("some_request_body"),
+     *      Times.exactly(5),
+     *      TimeToLive.exactly(TimeUnit.SECONDS, 120)
+     *  )
+     *  .respond(
+     *      response()
+     *          .withBody("some_response_body")
+     *          .withHeader("responseName", "responseValue")
+     *  )
+     * </pre>
      *
      * @param httpRequest the http request that must be matched for this expectation to respond
      * @param times       the number of times to respond when this http is matched
@@ -449,7 +513,7 @@ public abstract class AbstractClient<T extends AbstractClient> implements Closea
     void sendExpectation(Expectation expectation) {
         HttpResponse httpResponse = sendRequest(request().withMethod("PUT").withPath(calculatePath("expectation")).withBody(expectation != null ? expectationSerializer.serialize(expectation) : "", Charsets.UTF_8));
         if (httpResponse != null && httpResponse.getStatusCode() != 201) {
-            throw new ClientException(formatErrorMessage(NEW_LINE + "error:%s" + NEW_LINE + "while submitted expectation:%s", httpResponse.getBody(), expectation));
+            throw new ClientException(formatLogMessage("error:{}" + NEW_LINE + "while submitted expectation:{}", httpResponse.getBody(), expectation));
         }
     }
 

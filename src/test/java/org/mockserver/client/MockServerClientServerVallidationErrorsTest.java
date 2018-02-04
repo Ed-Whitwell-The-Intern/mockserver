@@ -1,12 +1,12 @@
-package org.mockserver.client.server;
+package org.mockserver.client;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockserver.client.ClientException;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.echo.http.EchoServer;
-import org.mockserver.socket.PortFactory;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.character.Character.NEW_LINE;
@@ -110,15 +110,22 @@ public class MockServerClientServerVallidationErrorsTest {
 
         // then
         exception.expect(ClientException.class);
-        exception.expectMessage(containsString(NEW_LINE +
-                NEW_LINE +
-                "error:" + NEW_LINE +
-                NEW_LINE +
-                "\t" + responseBody + NEW_LINE +
-                NEW_LINE +
-                "while submitted expectation:" + NEW_LINE +
-                NEW_LINE +
-                "\t{" + NEW_LINE
+        exception.expectMessage(containsString("error:" + NEW_LINE +
+            NEW_LINE +
+            "\t" + responseBody + NEW_LINE +
+            NEW_LINE +
+            "while submitted expectation:" + NEW_LINE +
+            "" + NEW_LINE +
+            "\t{" + NEW_LINE +
+            "\t  \"httpRequest\" : { }," + NEW_LINE +
+            "\t  \"times\" : {" + NEW_LINE +
+            "\t    \"unlimited\" : true" + NEW_LINE +
+            "\t  }," + NEW_LINE +
+            "\t  \"timeToLive\" : {" + NEW_LINE +
+            "\t    \"unlimited\" : true" + NEW_LINE +
+            "\t  }," + NEW_LINE +
+            "\t  \"httpResponse\" : { }" + NEW_LINE +
+            "\t}" + NEW_LINE
         ));
 
         // when

@@ -1,7 +1,8 @@
-package org.mockserver.client.server;
+package org.mockserver.client;
 
 import org.junit.*;
 import org.junit.rules.ExpectedException;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.client.serialization.ExpectationSerializer;
 import org.mockserver.client.serialization.HttpRequestSerializer;
 import org.mockserver.client.serialization.java.ExpectationToJavaSerializer;
