@@ -1,4 +1,4 @@
-package org.mockserver.client.serialization.java;
+package org.mockserver.serialization.java;
 
 import org.junit.Ignore;
 import org.junit.Test;
