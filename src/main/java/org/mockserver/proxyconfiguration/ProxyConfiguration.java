@@ -1,4 +1,4 @@
-package org.mockserver.proxy;
+package org.mockserver.proxyconfiguration;
 
 import java.net.InetSocketAddress;
 
