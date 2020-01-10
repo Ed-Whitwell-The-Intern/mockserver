@@ -1,4 +1,4 @@
-package org.mockserver.integration.server;
+package org.mockserver.integration.mock;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.util.CharsetUtil;

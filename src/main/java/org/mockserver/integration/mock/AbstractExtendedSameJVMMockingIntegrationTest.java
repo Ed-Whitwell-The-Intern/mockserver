@@ -1,4 +1,4 @@
-package org.mockserver.integration.server;
+package org.mockserver.integration.mock;
 
 import org.junit.Test;
 import org.mockserver.integration.callback.StaticTestExpectationResponseCallback;
