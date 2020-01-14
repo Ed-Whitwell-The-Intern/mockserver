@@ -1,4 +1,4 @@
-package org.mockserver.integration.mock;
+package org.mockserver.testing.integration.mock;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.channel.EventLoopGroup;
