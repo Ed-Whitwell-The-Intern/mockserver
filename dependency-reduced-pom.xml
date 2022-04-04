@@ -9,7 +9,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>mockserver-netty</artifactId>
+    <artifactId>mockserver-netty-no-dependencies</artifactId>
     <version>@project.version</version>
 
     <name>MockServer &amp; Proxy Netty</name>
