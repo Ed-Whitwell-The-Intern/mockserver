@@ -1,0 +1,34 @@
+rules:
+  - id: hardcoded-secrets
+    patterns:
+      - pattern: |
+          $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: .*(password|secret|key|token).*
+    message: Potential hardcoded secret found
+    languages: [java]
+    severity: WARNING
+
+  - id: sql-injection
+    patterns:
+      - pattern: |
+          $STMT.executeQuery($QUERY)
+      - pattern-not: |
+          $STMT.executeQuery("...")
+    message: Potential SQL injection vulnerability
+    languages: [java]
+    severity: ERROR
+
+  - id: path-traversal
+    patterns:
+      - pattern: new File($PATH)
+      - pattern-not: new File("...")
+    message: Potential path traversal vulnerability
+    languages: [java]
+    severity: WARNING
+
+extends:
+  - p/security-audit
+  - p/java
+  - p/owasp-top-ten

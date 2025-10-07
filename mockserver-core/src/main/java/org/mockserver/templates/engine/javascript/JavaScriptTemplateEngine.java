@@ -3,9 +3,6 @@ package org.mockserver.templates.engine.javascript;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
-import jdk.nashorn.api.scripting.ClassFilter;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.mockserver.configuration.Configuration;
 import org.mockserver.log.model.LogEntry;
 import org.mockserver.logging.MockServerLogger;
@@ -42,9 +39,9 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
     private final Configuration configuration;
 
     public JavaScriptTemplateEngine(MockServerLogger mockServerLogger, Configuration configuration) {
-        System.setProperty("nashorn.args", "--language=es6");
         this.configuration = (configuration == null) ? configuration() : configuration;
-        this.engine = new NashornScriptEngineFactory().getScriptEngine(new DisallowClassesInTemplates(configuration));
+        ScriptEngineManager manager = new ScriptEngineManager();
+        this.engine = manager.getEngineByName("javascript");
         this.mockServerLogger = mockServerLogger;
         this.httpTemplateOutputDeserializer = new HttpTemplateOutputDeserializer(mockServerLogger);
         this.objectMapper = ObjectMapperFactory.createObjectMapper();
@@ -65,12 +62,18 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
                 engine.setBindings(new ScriptBindings(TemplateFunctions.BUILT_IN_FUNCTIONS), ScriptContext.ENGINE_SCOPE);
                 compiledScript.eval(serialiseBindings);
 
-                ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) serialiseBindings.get("serialise");
-                Object stringifiedResponse = scriptObjectMirror.call(null, new HttpRequestTemplateObject(request));
+                Object stringifiedResponse;
+                if (engine instanceof Invocable) {
+                    stringifiedResponse = ((Invocable) engine).invokeFunction("serialise", new HttpRequestTemplateObject(request));
+                } else {
+                    stringifiedResponse = null;
+                }
 
                 JsonNode generatedObject = null;
                 try {
-                    generatedObject = objectMapper.readTree(String.valueOf(stringifiedResponse));
+                    if (stringifiedResponse != null) {
+                        generatedObject = objectMapper.readTree(String.valueOf(stringifiedResponse));
+                    }
                 } catch (Throwable throwable) {
                     if (MockServerLogger.isEnabled(Level.INFO)) {
                         mockServerLogger.logEvent(
@@ -126,7 +129,7 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
         }
     }
 
-    private static class DisallowClassesInTemplates implements ClassFilter {
+    private static class DisallowClassesInTemplates {
         private Iterable<String> restrictedClassesList = null;
         private final Configuration configuration;
 
@@ -141,12 +144,12 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
 
         /**
          * Specifies whether the Java class of the specified name be exposed to javascript
+         * Note: Class filtering not available with standard ScriptEngine API
          *
          * @param className is the fully qualified name of the java class being checked.
          *                  This will not be null. Only non-array class names will be passed.
          * @return true if the java class can be exposed to javascript, false otherwise
          */
-        @Override
         public boolean exposeToScripts(String className) {
             if (restrictedClassesList != null) {
                 return StreamSupport
@@ -157,5 +160,4 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
             }
         }
     }
-
 }

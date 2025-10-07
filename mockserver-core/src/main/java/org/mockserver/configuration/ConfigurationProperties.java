@@ -1762,8 +1762,8 @@ public class ConfigurationProperties {
                             .setMessageFormat("property file not found on classpath using path [" + propertyFile() + "]")
                     );
                 }
-                try {
-                    properties.load(new FileInputStream(propertyFile()));
+                try (FileInputStream fileInputStream = new FileInputStream(propertyFile())) {
+                    properties.load(fileInputStream);
                 } catch (FileNotFoundException e) {
                     if (MOCK_SERVER_LOGGER != null && MockServerLogger.isEnabled(DEBUG)) {
                         MOCK_SERVER_LOGGER.logEvent(

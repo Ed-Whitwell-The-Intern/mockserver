@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exclude test classes from security checks -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="HARD_CODE_PASSWORD,HARD_CODE_KEY,PATH_TRAVERSAL_IN,PATH_TRAVERSAL_OUT"/>
+    </Match>
+    
+    <!-- Exclude generated classes -->
+    <Match>
+        <Class name="~.*\.generated\..*"/>
+    </Match>
+    
+    <!-- Allow unread fields in DTOs and model classes -->
+    <Match>
+        <Class name="~.*DTO$"/>
+        <Bug pattern="URF_UNREAD_FIELD,UWF_UNWRITTEN_FIELD"/>
+    </Match>
+    <Match>
+        <Class name="~.*\.model\..*"/>
+        <Bug pattern="URF_UNREAD_FIELD,UWF_UNWRITTEN_FIELD"/>
+    </Match>
+    
+    <!-- Allow hardcoded values in test resources and examples -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME,DMI_CONSTANT_DB_PASSWORD"/>
+    </Match>
+    <Match>
+        <Class name="~.*Example.*"/>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME,HARD_CODE_PASSWORD"/>
+    </Match>
+</FindBugsFilter>
