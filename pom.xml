@@ -125,11 +125,17 @@
             <artifactId>jmustache</artifactId>
         </dependency>
 
-        <!-- javascript (only java 11+) -->
-        <!-- <dependency>
+        <!-- javascript (Nashorn standalone) -->
+        <dependency>
             <groupId>org.openjdk.nashorn</groupId>
             <artifactId>nashorn-core</artifactId>
-        </dependency> -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- json (object serialisation) -->
         <dependency>
