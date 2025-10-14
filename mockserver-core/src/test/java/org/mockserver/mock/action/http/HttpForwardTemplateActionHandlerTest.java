@@ -21,7 +21,7 @@ import static org.mockserver.character.Character.NEW_LINE;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.notFoundResponse;
 import static org.mockserver.model.HttpTemplate.template;
-import static org.mockserver.templates.engine.javascript.JavaScriptTemplateEngineTest.nashornAvailable;
+import static org.mockserver.templates.engine.javascript.JavaScriptTemplateEngineTest.graalJSAvailable;
 
 /**
  * @author jamesdbloom
@@ -35,14 +35,16 @@ public class HttpForwardTemplateActionHandlerTest {
     public void setupMocks() {
         mockHttpClient = mock(NettyHttpClient.class);
         MockServerLogger mockLogFormatter = mock(MockServerLogger.class);
-        httpForwardTemplateActionHandler = new HttpForwardTemplateActionHandler(mockLogFormatter, new Configuration(), mockHttpClient);
+        Configuration configuration = new Configuration();
+        configuration.javascriptTemplatesEnabled(true);
+        httpForwardTemplateActionHandler = new HttpForwardTemplateActionHandler(mockLogFormatter, configuration, mockHttpClient);
         openMocks(this);
     }
 
     @Test
     public void shouldHandleHttpRequestsWithJavaScriptTemplateFirstExample() throws Exception {
         // given
-        nashornAvailable();
+        graalJSAvailable();
         HttpTemplate template = template(HttpTemplate.TemplateType.JAVASCRIPT, "return { 'path': \"somePath\", 'body': JSON.stringify({name: 'value'}) };");
         HttpRequest httpRequest = request("somePath").withBody("{\"name\":\"value\"}");
         CompletableFuture<HttpResponse> httpResponse = new CompletableFuture<>();

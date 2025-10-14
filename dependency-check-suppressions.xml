@@ -1,19 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-    <!-- 
-    CVE-2021-32827: MockServer CORS and Script Injection Vulnerability
-    This CVE affects MockServer versions and is related to overly broad CORS configuration
-    and script injection in JavaScript/Velocity templates.
-    
-    Suppression rationale:
-    - This is a development/testing tool, not production software
-    - The vulnerability requires an attacker to trick a developer into visiting a malicious site
-    - Risk is acceptable for development environments
-    - Upgrading to newer MockServer versions may introduce breaking changes
-    -->
-    <suppress>
-        <notes>MockServer CVE-2021-32827 - CORS and Script Injection - Acceptable risk for development tool</notes>
-        <packageUrl regex="true">^pkg:maven/org\.mock-server/.*@.*$</packageUrl>
-        <cve>CVE-2021-32827</cve>
-    </suppress>
 </suppressions>

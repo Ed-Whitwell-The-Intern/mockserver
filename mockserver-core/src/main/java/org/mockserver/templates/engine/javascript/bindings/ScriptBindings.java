@@ -47,7 +47,14 @@ public class ScriptBindings implements Bindings {
 
     @Override
     public Set<Entry<String, Object>> entrySet() {
-        throw new NotImplementedException("entrySet not implemented by " + this.getClass().getSimpleName());
+        Set<Entry<String, Object>> entries = new java.util.HashSet<>();
+        // Add supplier entries
+        for (Map.Entry<String, Supplier<Object>> entry : suppliers.entrySet()) {
+            entries.add(new java.util.AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().get()));
+        }
+        // Add other state entries
+        entries.addAll(otherState.entrySet());
+        return entries;
     }
 
     @Override

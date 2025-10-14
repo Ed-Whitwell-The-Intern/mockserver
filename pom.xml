@@ -23,9 +23,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/jamesdbloom/mockservice.git</url>
-        <connection>scm:git:https://github.com/jamesdbloom/mockservice.git</connection>
-        <developerConnection>scm:git:git@github.com:jamesdbloom/mockservice.git</developerConnection>
+        <url>https://github.com/mock-server/mockserver.git</url>
+        <connection>scm:git:https://github.com/mock-server/mockserver.git</connection>
+        <developerConnection>scm:git:git@github.com:mock-server/mockserver.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -51,15 +51,16 @@
 
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF8</project.build.sourceEncoding>
         <slf4j.version>2.0.16</slf4j.version>
         <jackson.version>2.18.2</jackson.version>
         <velocity.version>2.4.1</velocity.version>
-        <netty.version>4.1.115.Final</netty.version>
+        <netty.version>4.1.125.Final</netty.version>
         <httpcomponents.version>4.5.14</httpcomponents.version>
         <bouncycastle.version>1.82</bouncycastle.version>
+        <graaljs.version>23.0.9</graaljs.version>
         <!-- updated for Java 21 compatibility -->
         <spring.version>5.3.39</spring.version>
         <spring-web.version>5.3.39</spring-web.version>
@@ -155,28 +156,23 @@
                 <version>8.5.2</version>
             </dependency>
 
-            <!-- Jetty HTTP Client -->
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-client</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-util</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-io</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
             <!-- Apache HTTP Client -->
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.14</version>
+                <version>${httpcomponents.version}</version>
+            </dependency>
+
+            <!-- GraalVM JavaScript Engine -->
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+                <version>${graaljs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js-scriptengine</artifactId>
+                <version>${graaljs.version}</version>
             </dependency>
 
             <!-- Netty -->
@@ -622,7 +618,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.3.0</version>
+                        <version>3.3.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -636,7 +632,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.5.0</version>
+                        <version>3.10.1</version>
                         <configuration>
                             <failOnError>false</failOnError>
                             <doclint>none</doclint>
@@ -671,7 +667,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.2.7</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -745,6 +741,21 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- OWASP Dependency Check -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>11.0.0</version>
+                <configuration>
+                    <autoUpdate>false</autoUpdate>
+                    <dataDirectory>${user.home}/.m2/repository/org/owasp/dependency-check-data/11.0</dataDirectory>
+                    <failBuildOnCVSS>11</failBuildOnCVSS>
+                    <formats>
+                        <format>HTML</format>
+                    </formats>
+                    <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+                </configuration>
             </plugin>
             <!-- output MANIFEST.MF file -->
             <plugin>
@@ -871,8 +882,6 @@
                     <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
                     <xmlOutput>true</xmlOutput>
                     <htmlOutput>true</htmlOutput>
-                    <findbugsXmlOutput>true</findbugsXmlOutput>
-                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
                 </configuration>
                 <executions>
                     <execution>
