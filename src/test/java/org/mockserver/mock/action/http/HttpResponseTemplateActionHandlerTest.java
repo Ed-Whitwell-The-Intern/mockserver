@@ -18,7 +18,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.notFoundResponse;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.HttpTemplate.template;
-import static org.mockserver.templates.engine.javascript.JavaScriptTemplateEngineTest.nashornAvailable;
+import static org.mockserver.templates.engine.javascript.JavaScriptTemplateEngineTest.graalJSAvailable;
 
 /**
  * @author jamesdbloom
@@ -30,14 +30,16 @@ public class HttpResponseTemplateActionHandlerTest {
     @Before
     public void setupMocks() {
         MockServerLogger mockLogFormatter = mock(MockServerLogger.class);
-        httpResponseTemplateActionHandler = new HttpResponseTemplateActionHandler(mockLogFormatter, new Configuration());
+        Configuration configuration = new Configuration();
+        configuration.javascriptTemplatesEnabled(true);
+        httpResponseTemplateActionHandler = new HttpResponseTemplateActionHandler(mockLogFormatter, configuration);
         openMocks(this);
     }
 
     @Test
     public void shouldHandleHttpRequestsWithJavaScriptTemplateFirstExample() {
         // given
-        nashornAvailable();
+        graalJSAvailable();
         HttpTemplate template = template(HttpTemplate.TemplateType.JAVASCRIPT, "if (request.method === 'POST' && request.path === '/somePath') {" + NEW_LINE +
                 "    return {" + NEW_LINE +
                 "        'statusCode': 200," + NEW_LINE +
@@ -74,7 +76,7 @@ public class HttpResponseTemplateActionHandlerTest {
     @Test
     public void shouldHandleHttpRequestsWithJavaScriptTemplateSecondExample() {
         // given
-        nashornAvailable();
+        graalJSAvailable();
         HttpTemplate template = template(HttpTemplate.TemplateType.JAVASCRIPT, "if (request.method === 'POST' && request.path === '/somePath') {" + NEW_LINE +
                 "    return {" + NEW_LINE +
                 "        'statusCode': 200," + NEW_LINE +

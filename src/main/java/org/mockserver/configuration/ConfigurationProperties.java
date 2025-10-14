@@ -93,6 +93,8 @@ public class ConfigurationProperties {
     // template restrictions
     private static final String MOCKSERVER_JAVASCRIPT_DISALLOWED_CLASSES = "mockserver.javascriptDisallowedClasses";
     private static final String MOCKSERVER_JAVASCRIPT_DISALLOWED_TEXT = "mockserver.javascriptDisallowedText";
+    private static final String MOCKSERVER_JAVASCRIPT_TEMPLATES_ENABLED = "mockserver.javascriptTemplatesEnabled";
+    private static final String MOCKSERVER_VELOCITY_TEMPLATES_ENABLED = "mockserver.velocityTemplatesEnabled";
     private static final String MOCKSERVER_VELOCITY_DISALLOW_CLASS_LOADING = "mockserver.velocityDisallowClassLoading";
     private static final String MOCKSERVER_VELOCITY_DISALLOWED_TEXT = "mockserver.velocityDisallowedText";
     private static final String MOCKSERVER_MUSTACHE_DISALLOWED_TEXT = "mockserver.mustacheDisallowedText";
@@ -831,15 +833,45 @@ public class ConfigurationProperties {
         setProperty(MOCKSERVER_JAVASCRIPT_DISALLOWED_TEXT, javascriptDisallowedText);
     }
 
+    public static boolean javascriptTemplatesEnabled() {
+        return Boolean.parseBoolean(readPropertyHierarchically(PROPERTIES, MOCKSERVER_JAVASCRIPT_TEMPLATES_ENABLED, "MOCKSERVER_JAVASCRIPT_TEMPLATES_ENABLED", "" + false));
+    }
+
+    /**
+     * Enable or disable JavaScript template processing
+     * <p>
+     * The default is disabled for security reasons
+     *
+     * @param javascriptTemplatesEnabled true to enable JavaScript templates, false to disable
+     */
+    public static void javascriptTemplatesEnabled(boolean javascriptTemplatesEnabled) {
+        setProperty(MOCKSERVER_JAVASCRIPT_TEMPLATES_ENABLED, "" + javascriptTemplatesEnabled);
+    }
+
+
+    public static boolean velocityTemplatesEnabled() {
+        return Boolean.parseBoolean(readPropertyHierarchically(PROPERTIES, MOCKSERVER_VELOCITY_TEMPLATES_ENABLED, "MOCKSERVER_VELOCITY_TEMPLATES_ENABLED", "" + false));
+    }
+
+    /**
+     * If true velocity templates are enabled
+     * <p>
+     * The default is false for security reasons (similar to CVE-2021-32827 concerns)
+     *
+     * @param velocityTemplatesEnabled velocity templates are enabled
+     */
+    public static void velocityTemplatesEnabled(boolean velocityTemplatesEnabled) {
+        setProperty(MOCKSERVER_VELOCITY_TEMPLATES_ENABLED, "" + velocityTemplatesEnabled);
+    }
 
     public static boolean velocityDisallowClassLoading() {
-        return Boolean.parseBoolean(readPropertyHierarchically(PROPERTIES, MOCKSERVER_VELOCITY_DISALLOW_CLASS_LOADING, "MOCKSERVER_VELOCITY_DISALLOW_CLASS_LOADING", "" + false));
+        return Boolean.parseBoolean(readPropertyHierarchically(PROPERTIES, MOCKSERVER_VELOCITY_DISALLOW_CLASS_LOADING, "MOCKSERVER_VELOCITY_DISALLOW_CLASS_LOADING", "" + true));
     }
 
     /**
      * If true class loading is not allowed in velocity templates
      * <p>
-     * The default is false
+     * The default is true for security reasons
      *
      * @param velocityDisallowClassLoading class loading is not allowed in velocity templates
      */
