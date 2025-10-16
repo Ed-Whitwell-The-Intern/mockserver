@@ -50,13 +50,9 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
         if (engine == null) {
             ScriptEngineManager manager = new ScriptEngineManager();
             engine = manager.getEngineByName("graal.js");
-            if (engine == null) {
-                // Fallback to JavaScript engine if graal.js not available
-                engine = manager.getEngineByName("javascript");
-            }
             
             // Configure security restrictions for GraalJS
-            if (engine != null && engine.getClass().getName().contains("graal")) {
+            if (engine != null) {
                 try {
                     // Disable Java class access
                     engine.put("java", null);
@@ -165,8 +161,8 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
                         .setLogLevel(Level.ERROR)
                         .setHttpRequest(request)
                         .setMessageFormat(
-                            "JavaScript based templating is only available in a JVM with a JavaScript engine, " +
-                                "please use a JVM with GraalVM JavaScript engine or add the GraalJS dependency"
+                            "JavaScript templates are not available - no JavaScript engine found. " +
+                                "Please use a JVM with GraalVM JavaScript engine or add the GraalJS dependency"
                         )
                         .setArguments(new RuntimeException("JavaScript engine not available"))
                 );

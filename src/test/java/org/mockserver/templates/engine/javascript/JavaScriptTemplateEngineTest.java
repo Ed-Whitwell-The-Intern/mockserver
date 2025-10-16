@@ -23,7 +23,6 @@ import org.mockserver.time.TimeService;
 import org.mockserver.uuid.UUIDService;
 import org.slf4j.event.Level;
 
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptEngine;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
