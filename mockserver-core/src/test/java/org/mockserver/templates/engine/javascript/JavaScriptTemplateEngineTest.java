@@ -1,4 +1,5 @@
 package org.mockserver.templates.engine.javascript;
+import javax.script.ScriptEngine;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

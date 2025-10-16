@@ -4,7 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.mockserver.logging.MockServerLogger;
 
-import javax.servlet.*;
+import jakarta.servlet.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;

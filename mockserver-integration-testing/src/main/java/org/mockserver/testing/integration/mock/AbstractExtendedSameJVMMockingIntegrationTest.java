@@ -5,6 +5,7 @@ import org.mockserver.model.HttpStatusCode;
 import org.mockserver.model.HttpTemplate;
 import org.mockserver.testing.integration.callback.StaticTestExpectationResponseCallback;
 
+import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -95,7 +96,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
         assertEquals(StaticTestExpectationResponseCallback.httpRequests.get(1).getPath().getValue(), calculatePath("callback"));
     }
 
-    @Test // same JVM due to issues detecting Nashorn is enabled via Maven plugin
+    @Test // same JVM due to issues detecting GraalJS is enabled via Maven plugin
     public void shouldReturnResponseFromJavaScriptTemplate() {
         // when
         mockServerClient
@@ -120,7 +121,12 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
                 )
             );
 
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngine engine = manager.getEngineByName("graal.js");
+        if (engine == null) {
+            engine = manager.getEngineByName("javascript");
+        }
+        if (engine != null) {
 
             // then
             // - in http
@@ -187,7 +193,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
         }
     }
 
-    @Test // same JVM due to issues detecting Nashorn is enabled via Maven plugin
+    @Test // same JVM due to issues detecting GraalJS is enabled via Maven plugin
     public void shouldForwardTemplateInJavaScript() {
         // when
         mockServerClient
@@ -211,7 +217,12 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
                     .withDelay(MILLISECONDS, 10)
             );
 
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        ScriptEngineManager manager2 = new ScriptEngineManager();
+        ScriptEngine engine2 = manager2.getEngineByName("graal.js");
+        if (engine2 == null) {
+            engine2 = manager2.getEngineByName("javascript");
+        }
+        if (engine2 != null) {
 
             // then
             // - in http

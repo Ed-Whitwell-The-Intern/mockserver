@@ -1,4 +1,5 @@
 package org.mockserver.mock.action.http;
+import javax.script.ScriptEngine;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -60,7 +61,12 @@ public class HttpForwardTemplateActionHandlerTest {
             .getHttpResponse();
 
         // then
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngine engine = manager.getEngineByName("graal.js");
+        if (engine == null) {
+            engine = manager.getEngineByName("javascript");
+        }
+        if (engine != null) {
             verify(mockHttpClient).sendRequest(httpRequest, null);
             assertThat(actualHttpResponse, is(sameInstance(httpResponse)));
         } else {

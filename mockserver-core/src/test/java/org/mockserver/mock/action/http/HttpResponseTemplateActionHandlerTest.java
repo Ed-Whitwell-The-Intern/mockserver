@@ -1,4 +1,5 @@
 package org.mockserver.mock.action.http;
+import javax.script.ScriptEngine;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -60,7 +61,12 @@ public class HttpResponseTemplateActionHandlerTest {
         );
 
         // then
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngine engine = manager.getEngineByName("graal.js");
+        if (engine == null) {
+            engine = manager.getEngineByName("javascript");
+        }
+        if (engine != null) {
             assertThat(actualHttpResponse, is(
                     response()
                             .withStatusCode(200)
@@ -96,7 +102,12 @@ public class HttpResponseTemplateActionHandlerTest {
         );
 
         // then
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        ScriptEngineManager manager2 = new ScriptEngineManager();
+        ScriptEngine engine2 = manager2.getEngineByName("graal.js");
+        if (engine2 == null) {
+            engine2 = manager2.getEngineByName("javascript");
+        }
+        if (engine2 != null) {
             assertThat(actualHttpResponse, is(
                     response()
                             .withStatusCode(406)
