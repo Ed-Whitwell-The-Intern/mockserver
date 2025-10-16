@@ -1,5 +1,4 @@
 package org.mockserver.mock.action.http;
-import javax.script.ScriptEngine;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -9,8 +8,8 @@ import org.mockserver.logging.MockServerLogger;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpTemplate;
+import org.mockserver.templates.engine.javascript.JavaScriptEngineUtils;
 
-import javax.script.ScriptEngineManager;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,6 +37,7 @@ public class HttpForwardTemplateActionHandlerTest {
         MockServerLogger mockLogFormatter = mock(MockServerLogger.class);
         Configuration configuration = new Configuration();
         configuration.javascriptTemplatesEnabled(true);
+        configuration.velocityTemplatesEnabled(true);
         httpForwardTemplateActionHandler = new HttpForwardTemplateActionHandler(mockLogFormatter, configuration, mockHttpClient);
         openMocks(this);
     }
@@ -61,12 +61,7 @@ public class HttpForwardTemplateActionHandlerTest {
             .getHttpResponse();
 
         // then
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("graal.js");
-        if (engine == null) {
-            engine = manager.getEngineByName("javascript");
-        }
-        if (engine != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
             verify(mockHttpClient).sendRequest(httpRequest, null);
             assertThat(actualHttpResponse, is(sameInstance(httpResponse)));
         } else {

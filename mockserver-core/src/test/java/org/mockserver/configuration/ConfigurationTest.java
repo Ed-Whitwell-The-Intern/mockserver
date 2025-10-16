@@ -970,8 +970,8 @@ public class ConfigurationTest {
     public void shouldSetAndGetVelocityDisallowClassLoading() {
         boolean original = ConfigurationProperties.velocityDisallowClassLoading();
         try {
-            // then - default value
-            assertThat(configuration.velocityDisallowClassLoading(), equalTo(false));
+            // then - default value (now true for security)
+            assertThat(configuration.velocityDisallowClassLoading(), equalTo(true));
 
             // when - system property setter
             ConfigurationProperties.velocityDisallowClassLoading(true);

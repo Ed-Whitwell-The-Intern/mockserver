@@ -151,7 +151,7 @@ public class ExpectationSerializer implements Serializer<Expectation> {
                 }
                 return expectation;
             } else {
-                throw new IllegalArgumentException(StringUtils.removeEndIgnoreCase(formatLogMessage("incorrect expectation json format for:{}schema validation errors:{}", jsonExpectation, validationErrors), "\n"));
+                throw new IllegalArgumentException(StringUtils.removeEnd(formatLogMessage("incorrect expectation json format for:{}schema validation errors:{}", jsonExpectation, validationErrors), "\n"));
             }
         }
     }

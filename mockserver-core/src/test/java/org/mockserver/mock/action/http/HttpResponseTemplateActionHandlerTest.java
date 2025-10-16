@@ -1,5 +1,4 @@
 package org.mockserver.mock.action.http;
-import javax.script.ScriptEngine;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -7,8 +6,7 @@ import org.mockserver.configuration.Configuration;
 import org.mockserver.logging.MockServerLogger;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpTemplate;
-
-import javax.script.ScriptEngineManager;
+import org.mockserver.templates.engine.javascript.JavaScriptEngineUtils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -33,6 +31,7 @@ public class HttpResponseTemplateActionHandlerTest {
         MockServerLogger mockLogFormatter = mock(MockServerLogger.class);
         Configuration configuration = new Configuration();
         configuration.javascriptTemplatesEnabled(true);
+        configuration.velocityTemplatesEnabled(true);
         httpResponseTemplateActionHandler = new HttpResponseTemplateActionHandler(mockLogFormatter, configuration);
         openMocks(this);
     }
@@ -61,12 +60,7 @@ public class HttpResponseTemplateActionHandlerTest {
         );
 
         // then
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("graal.js");
-        if (engine == null) {
-            engine = manager.getEngineByName("javascript");
-        }
-        if (engine != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
             assertThat(actualHttpResponse, is(
                     response()
                             .withStatusCode(200)
@@ -82,7 +76,6 @@ public class HttpResponseTemplateActionHandlerTest {
     @Test
     public void shouldHandleHttpRequestsWithJavaScriptTemplateSecondExample() {
         // given
-        graalJSAvailable();
         HttpTemplate template = template(HttpTemplate.TemplateType.JAVASCRIPT, "if (request.method === 'POST' && request.path === '/somePath') {" + NEW_LINE +
                 "    return {" + NEW_LINE +
                 "        'statusCode': 200," + NEW_LINE +
@@ -101,23 +94,12 @@ public class HttpResponseTemplateActionHandlerTest {
                 .withBody("some_body")
         );
 
-        // then
-        ScriptEngineManager manager2 = new ScriptEngineManager();
-        ScriptEngine engine2 = manager2.getEngineByName("graal.js");
-        if (engine2 == null) {
-            engine2 = manager2.getEngineByName("javascript");
-        }
-        if (engine2 != null) {
-            assertThat(actualHttpResponse, is(
-                    response()
-                            .withStatusCode(406)
-                            .withBody("some_body")
-            ));
-        } else {
-            assertThat(actualHttpResponse, is(
-                    notFoundResponse()
-            ));
-        }
+        // then - JavaScript engine is available in test environment, so expect 406
+        assertThat(actualHttpResponse, is(
+                response()
+                        .withStatusCode(406)
+                        .withBody("some_body")
+        ));
     }
 
     @Test

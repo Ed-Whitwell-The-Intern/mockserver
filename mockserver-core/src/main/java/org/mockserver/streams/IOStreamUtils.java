@@ -35,7 +35,7 @@ public class IOStreamUtils {
                 if (line.startsWith("content-length") || line.startsWith("Content-Length")) {
                     contentLength = Integer.parseInt(line.split(":")[1].trim());
                 }
-                if (line.length() == 0) {
+                if (line.isEmpty()) {
                     if (contentLength != null) {
                         result.append(NEW_LINE);
                         for (int position = 0; position < contentLength; position++) {

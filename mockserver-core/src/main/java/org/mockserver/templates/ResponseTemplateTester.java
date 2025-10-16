@@ -7,11 +7,9 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.serialization.model.HttpResponseDTO;
 import org.mockserver.templates.engine.javascript.JavaScriptTemplateEngine;
+import org.mockserver.templates.engine.javascript.JavaScriptEngineUtils;
 import org.mockserver.templates.engine.mustache.MustacheTemplateEngine;
 import org.mockserver.templates.engine.velocity.VelocityTemplateEngine;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 
 public class ResponseTemplateTester {
 
@@ -26,15 +24,10 @@ public class ResponseTemplateTester {
     }
 
     public static HttpResponse testJavaScriptTemplate(String template, HttpRequest request) {
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("graal.js");
-        if (engine == null) {
-            engine = manager.getEngineByName("javascript");
-        }
-        if (engine != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
             return new JavaScriptTemplateEngine(MOCK_SERVER_LOGGER, new Configuration()).executeTemplate(template, request, HttpResponseDTO.class);
         } else {
-            throw new NotImplementedException("GraalJS or JavaScript engine is not available on this JVM so JavaScript templates are not supported");
+            throw new NotImplementedException("JavaScript engine is not available on this JVM so JavaScript templates are not supported");
         }
     }
 

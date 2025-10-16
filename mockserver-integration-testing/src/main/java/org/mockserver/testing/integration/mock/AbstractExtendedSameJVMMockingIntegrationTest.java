@@ -4,9 +4,7 @@ import org.junit.Test;
 import org.mockserver.model.HttpStatusCode;
 import org.mockserver.model.HttpTemplate;
 import org.mockserver.testing.integration.callback.StaticTestExpectationResponseCallback;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
+import org.mockserver.templates.engine.javascript.JavaScriptEngineUtils;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static junit.framework.TestCase.assertEquals;
@@ -121,12 +119,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
                 )
             );
 
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("graal.js");
-        if (engine == null) {
-            engine = manager.getEngineByName("javascript");
-        }
-        if (engine != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
 
             // then
             // - in http
@@ -217,12 +210,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
                     .withDelay(MILLISECONDS, 10)
             );
 
-        ScriptEngineManager manager2 = new ScriptEngineManager();
-        ScriptEngine engine2 = manager2.getEngineByName("graal.js");
-        if (engine2 == null) {
-            engine2 = manager2.getEngineByName("javascript");
-        }
-        if (engine2 != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
 
             // then
             // - in http
