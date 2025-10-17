@@ -7,8 +7,8 @@ import org.mockserver.codec.ExpandedParameterDecoder;
 import org.mockserver.configuration.Configuration;
 import org.mockserver.logging.MockServerLogger;
 import org.mockserver.model.*;
+import jakarta.servlet.http.HttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -84,10 +84,10 @@ public class HttpServletRequestToMockServerHttpRequestDecoder {
     }
 
     private void setCookies(HttpRequest httpRequest, HttpServletRequest httpServletRequest) {
-        javax.servlet.http.Cookie[] httpServletRequestCookies = httpServletRequest.getCookies();
+        jakarta.servlet.http.Cookie[] httpServletRequestCookies = httpServletRequest.getCookies();
         if (httpServletRequestCookies != null && httpServletRequestCookies.length > 0) {
             Cookies cookies = new Cookies();
-            for (javax.servlet.http.Cookie cookie : httpServletRequestCookies) {
+            for (jakarta.servlet.http.Cookie cookie : httpServletRequestCookies) {
                 cookies.withEntry(new Cookie(cookie.getName(), cookie.getValue()));
             }
             httpRequest.withCookies(cookies);

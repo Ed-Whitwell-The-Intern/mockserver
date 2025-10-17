@@ -81,16 +81,24 @@ public class VelocityTemplateEngineTest {
     }
 
     private Level originalLogLevel;
+    private Boolean originalVelocityTemplatesEnabled;
 
     @Before
     public void setLogLevel() {
         originalLogLevel = ConfigurationProperties.logLevel();
         ConfigurationProperties.logLevel("INFO");
+        
+        // Enable velocity templates for testing
+        originalVelocityTemplatesEnabled = ConfigurationProperties.velocityTemplatesEnabled();
+        ConfigurationProperties.velocityTemplatesEnabled(true);
     }
 
     @After
     public void resetLogLevel() {
         ConfigurationProperties.logLevel(originalLogLevel.name());
+        
+        // Reset velocity templates setting
+        ConfigurationProperties.velocityTemplatesEnabled(originalVelocityTemplatesEnabled);
     }
 
     @Test
@@ -504,20 +512,19 @@ public class VelocityTemplateEngineTest {
                 .withHeader(HOST.toString(), "mock-server.com")
                 .withBody("some_body".getBytes(StandardCharsets.UTF_8));
 
-            // then
-            Exception exception = assertThrows(RuntimeException.class, () -> new VelocityTemplateEngine(mockServerLogger, configuration).executeTemplate(template, request, HttpResponseDTO.class));
-            assertThat(exception.getMessage(), containsString("Cannot run program \"does_not_exist.sh\""));
-
-            // when
+            // when class loading is disallowed (default: true) - should skip execution and not throw error
             configuration.velocityDisallowClassLoading(true);
-
-            // then - should skip execution of line and not thrown error
             HttpResponse actualHttpResponse = new VelocityTemplateEngine(mockServerLogger, configuration).executeTemplate(template, request, HttpResponseDTO.class);
             assertThat(actualHttpResponse, is(
                 response()
                     .withStatusCode(200)
                     .withBody("")
             ));
+
+            // when class loading is explicitly allowed - dangerous operation should be attempted and fail
+            configuration.velocityDisallowClassLoading(false);
+            Exception exception = assertThrows(RuntimeException.class, () -> new VelocityTemplateEngine(mockServerLogger, configuration).executeTemplate(template, request, HttpResponseDTO.class));
+            assertThat(exception.getMessage(), containsString("Cannot run program \"does_not_exist.sh\""));
         } finally {
             configuration.velocityDisallowClassLoading(originalVelocityDenyClasses);
         }
@@ -539,15 +546,11 @@ public class VelocityTemplateEngineTest {
                 .withHeader(HOST.toString(), "mock-server.com")
                 .withBody("some_body".getBytes(StandardCharsets.UTF_8));
 
-            // then
-            Exception exception = assertThrows(RuntimeException.class, () -> new VelocityTemplateEngine(mockServerLogger, configuration).executeTemplate(template, request, HttpResponseDTO.class));
-            assertThat(exception.getMessage(), containsString("Cannot run program \"does_not_exist.sh\""));
-
-            // when
+            // when disallowed text is configured
             configuration.velocityDisallowedText("request.class");
 
             // then
-            exception = assertThrows(RuntimeException.class, () -> new VelocityTemplateEngine(mockServerLogger, configuration).executeTemplate(template, request, HttpResponseDTO.class));
+            Exception exception = assertThrows(RuntimeException.class, () -> new VelocityTemplateEngine(mockServerLogger, configuration).executeTemplate(template, request, HttpResponseDTO.class));
             assertThat(exception.getMessage(), containsString("Found disallowed string \"request.class\" in template:"));
         } finally {
             configuration.velocityDisallowedText(originalVelocityDisallowedText);
@@ -822,6 +825,36 @@ public class VelocityTemplateEngineTest {
             future.get();
         }
         newFixedThreadPool.shutdown();
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenVelocityTemplatesDisabledByDefault() {
+        // Reset to default (disabled) state for this test
+        ConfigurationProperties.velocityTemplatesEnabled(false);
+        
+        try {
+            // given
+            String template = "{" + NEW_LINE +
+                "    'statusCode': 200," + NEW_LINE +
+                "    'body': \"{'method': '$request.method', 'path': '$request.path', 'headers': '$request.headers.host[0]'}\"" + NEW_LINE +
+                "}";
+            HttpRequest request = request()
+                .withPath("/somePath")
+                .withMethod("POST")
+                .withHeader(HOST.toString(), "mock-server.com")
+                .withBody("some_body");
+
+            // when/then
+            UnsupportedOperationException exception = assertThrows(UnsupportedOperationException.class, 
+                () -> new VelocityTemplateEngine(mockServerLogger, configuration).executeTemplate(template, request, HttpResponseDTO.class));
+            
+            assertThat(exception.getMessage(), containsString("Velocity templates are disabled for security reasons"));
+            assertThat(exception.getMessage(), containsString("To enable, set mockserver.velocityTemplatesEnabled=true"));
+            assertThat(exception.getMessage(), containsString("WARNING: Enabling Velocity templates may expose security vulnerabilities"));
+        } finally {
+            // Restore enabled state for other tests
+            ConfigurationProperties.velocityTemplatesEnabled(true);
+        }
     }
 
 }

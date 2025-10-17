@@ -8,8 +8,8 @@ import org.mockserver.logging.MockServerLogger;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpTemplate;
+import org.mockserver.templates.engine.javascript.JavaScriptEngineUtils;
 
-import javax.script.ScriptEngineManager;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,7 +21,7 @@ import static org.mockserver.character.Character.NEW_LINE;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.notFoundResponse;
 import static org.mockserver.model.HttpTemplate.template;
-import static org.mockserver.templates.engine.javascript.JavaScriptTemplateEngineTest.nashornAvailable;
+import static org.mockserver.templates.engine.javascript.JavaScriptTemplateEngineTest.graalJSAvailable;
 
 /**
  * @author jamesdbloom
@@ -35,14 +35,17 @@ public class HttpForwardTemplateActionHandlerTest {
     public void setupMocks() {
         mockHttpClient = mock(NettyHttpClient.class);
         MockServerLogger mockLogFormatter = mock(MockServerLogger.class);
-        httpForwardTemplateActionHandler = new HttpForwardTemplateActionHandler(mockLogFormatter, new Configuration(), mockHttpClient);
+        Configuration configuration = new Configuration();
+        configuration.javascriptTemplatesEnabled(true);
+        configuration.velocityTemplatesEnabled(true);
+        httpForwardTemplateActionHandler = new HttpForwardTemplateActionHandler(mockLogFormatter, configuration, mockHttpClient);
         openMocks(this);
     }
 
     @Test
     public void shouldHandleHttpRequestsWithJavaScriptTemplateFirstExample() throws Exception {
         // given
-        nashornAvailable();
+        graalJSAvailable();
         HttpTemplate template = template(HttpTemplate.TemplateType.JAVASCRIPT, "return { 'path': \"somePath\", 'body': JSON.stringify({name: 'value'}) };");
         HttpRequest httpRequest = request("somePath").withBody("{\"name\":\"value\"}");
         CompletableFuture<HttpResponse> httpResponse = new CompletableFuture<>();
@@ -58,7 +61,7 @@ public class HttpForwardTemplateActionHandlerTest {
             .getHttpResponse();
 
         // then
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
             verify(mockHttpClient).sendRequest(httpRequest, null);
             assertThat(actualHttpResponse, is(sameInstance(httpResponse)));
         } else {

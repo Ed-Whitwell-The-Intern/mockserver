@@ -4,8 +4,7 @@ import org.junit.Test;
 import org.mockserver.model.HttpStatusCode;
 import org.mockserver.model.HttpTemplate;
 import org.mockserver.testing.integration.callback.StaticTestExpectationResponseCallback;
-
-import javax.script.ScriptEngineManager;
+import org.mockserver.templates.engine.javascript.JavaScriptEngineUtils;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static junit.framework.TestCase.assertEquals;
@@ -95,7 +94,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
         assertEquals(StaticTestExpectationResponseCallback.httpRequests.get(1).getPath().getValue(), calculatePath("callback"));
     }
 
-    @Test // same JVM due to issues detecting Nashorn is enabled via Maven plugin
+    @Test // same JVM due to issues detecting GraalJS is enabled via Maven plugin
     public void shouldReturnResponseFromJavaScriptTemplate() {
         // when
         mockServerClient
@@ -120,7 +119,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
                 )
             );
 
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
 
             // then
             // - in http
@@ -187,7 +186,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
         }
     }
 
-    @Test // same JVM due to issues detecting Nashorn is enabled via Maven plugin
+    @Test // same JVM due to issues detecting GraalJS is enabled via Maven plugin
     public void shouldForwardTemplateInJavaScript() {
         // when
         mockServerClient
@@ -211,7 +210,7 @@ public abstract class AbstractExtendedSameJVMMockingIntegrationTest extends Abst
                     .withDelay(MILLISECONDS, 10)
             );
 
-        if (new ScriptEngineManager().getEngineByName("nashorn") != null) {
+        if (JavaScriptEngineUtils.isAvailable()) {
 
             // then
             // - in http

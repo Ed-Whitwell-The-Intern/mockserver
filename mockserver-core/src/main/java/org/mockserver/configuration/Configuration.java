@@ -77,6 +77,8 @@ public class Configuration {
     // template restrictions
     private String javascriptDisallowedClasses;
     private String javascriptDisallowedText;
+    private Boolean javascriptTemplatesEnabled;
+    private Boolean velocityTemplatesEnabled;
     private Boolean velocityDisallowClassLoading;
     private String velocityDisallowedText;
     private String mustacheDisallowedText;
@@ -868,6 +870,44 @@ public class Configuration {
         return this;
     }
 
+    public Boolean javascriptTemplatesEnabled() {
+        if (javascriptTemplatesEnabled == null) {
+            return ConfigurationProperties.javascriptTemplatesEnabled();
+        }
+        return javascriptTemplatesEnabled;
+    }
+
+    /**
+     * Enable or disable JavaScript template processing
+     * <p>
+     * The default is disabled for security reasons
+     *
+     * @param javascriptTemplatesEnabled true to enable JavaScript templates, false to disable
+     */
+    public Configuration javascriptTemplatesEnabled(Boolean javascriptTemplatesEnabled) {
+        this.javascriptTemplatesEnabled = javascriptTemplatesEnabled;
+        return this;
+    }
+
+    public Boolean velocityTemplatesEnabled() {
+        if (velocityTemplatesEnabled == null) {
+            return ConfigurationProperties.velocityTemplatesEnabled();
+        }
+        return velocityTemplatesEnabled;
+    }
+
+    /**
+     * If true velocity templates are enabled
+     * <p>
+     * The default is false for security reasons (similar to CVE-2021-32827 concerns)
+     *
+     * @param velocityTemplatesEnabled velocity templates are enabled
+     */
+    public Configuration velocityTemplatesEnabled(Boolean velocityTemplatesEnabled) {
+        this.velocityTemplatesEnabled = velocityTemplatesEnabled;
+        return this;
+    }
+
     public Boolean velocityDisallowClassLoading() {
         if (velocityDisallowClassLoading == null) {
             return ConfigurationProperties.velocityDisallowClassLoading();
@@ -878,7 +918,7 @@ public class Configuration {
     /**
      * If true class loading is not allowed in velocity templates
      * <p>
-     * The default is false
+     * The default is true for security reasons
      *
      * @param velocityDisallowClassLoading class loading is not allowed in velocity templates
      */

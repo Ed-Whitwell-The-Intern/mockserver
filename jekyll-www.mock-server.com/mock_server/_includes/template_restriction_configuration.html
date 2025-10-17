@@ -2,6 +2,27 @@
 
 <h2>Template Restriction Configuration:</h2>
 
+<button id="button_configuration_enable_javascript_templates" class="accordion title"><strong>⚠️ Enable javascript templates (SECURITY RISK)</strong></button>
+<div class="panel title">
+    <p><strong style="color: red;">WARNING:</strong> JavaScript templates are disabled by default due to security vulnerability <a href="https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-32827" target="_blank">CVE-2021-32827</a> (CVSS 9.6 CRITICAL)</p>
+    <p>Enable or disable JavaScript template processing. Only enable in isolated environments.</p>
+    <p>Type: <span class="keyword">boolean</span> Default: <span class="this_value">false</span></p>
+    <p>Java Code:</p>
+    <pre class="prettyprint lang-java code"><code class="code">ConfigurationProperties.javascriptTemplatesEnabled(boolean javascriptTemplatesEnabled)</code></pre>
+    <p>System Property:</p>
+    <pre class="code" style="padding: 2px;"><code class="code">-Dmockserver.javascriptTemplatesEnabled=true</code></pre>
+    <p>Environment Variable:</p>
+    <pre class="code" style="padding: 2px;"><code class="code">MOCKSERVER_JAVASCRIPT_TEMPLATES_ENABLED=true</code></pre>
+    <p>Property File:</p>
+    <pre class="code" style="padding: 2px;"><code class="code">mockserver.javascriptTemplatesEnabled=true</code></pre>
+    <p><strong>Security Recommendations:</strong></p>
+    <ul>
+        <li>Use only in isolated test environments</li>
+        <li>Never browse the web while MockServer is running</li>
+        <li>Consider using Mustache or Velocity templates instead</li>
+    </ul>
+</div>
+
 <button id="button_configuration_disable_classes_in_javascript_templates" class="accordion title"><strong>Disable classes in javascript templates</strong></button>
 <div class="panel title">
     <p>Set comma separate list of classes not allowed to be used by javascript templates</p>

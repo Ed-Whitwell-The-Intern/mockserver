@@ -4,9 +4,9 @@ import com.google.common.io.ByteStreams;
 import org.mockserver.log.model.LogEntry;
 import org.mockserver.logging.MockServerLogger;
 import org.slf4j.event.Level;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ public class IOStreamUtils {
                 if (line.startsWith("content-length") || line.startsWith("Content-Length")) {
                     contentLength = Integer.parseInt(line.split(":")[1].trim());
                 }
-                if (line.length() == 0) {
+                if (line.isEmpty()) {
                     if (contentLength != null) {
                         result.append(NEW_LINE);
                         for (int position = 0; position < contentLength; position++) {

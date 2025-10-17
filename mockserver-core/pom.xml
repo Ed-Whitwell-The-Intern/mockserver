@@ -30,8 +30,8 @@
 
         <!-- http -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
 
         <!-- Netty -->
@@ -125,11 +125,15 @@
             <artifactId>jmustache</artifactId>
         </dependency>
 
-        <!-- javascript (only java 11+) -->
-        <!-- <dependency>
-            <groupId>org.openjdk.nashorn</groupId>
-            <artifactId>nashorn-core</artifactId>
-        </dependency> -->
+        <!-- GraalVM JavaScript Engine -->
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js-scriptengine</artifactId>
+        </dependency>
 
         <!-- json (object serialisation) -->
         <dependency>
@@ -276,6 +280,8 @@
             <artifactId>jsonassert</artifactId>
             <scope>test</scope>
         </dependency>
+
+
     </dependencies>
 
 </project>

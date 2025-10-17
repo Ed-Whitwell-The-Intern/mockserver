@@ -85,8 +85,13 @@ public class VelocityTemplateEngine implements TemplateEngine {
         velocityProperties.put(RuntimeConstants.RESOURCE_MANAGER_CLASS, org.apache.velocity.runtime.resource.ResourceManagerImpl.class.getName());
         velocityProperties.put(RuntimeConstants.RESOURCE_MANAGER_CACHE_CLASS, org.apache.velocity.runtime.resource.ResourceCacheImpl.class.getName());
         velocityProperties.put("resource.loader.file.class", org.apache.velocity.runtime.resource.loader.FileResourceLoader.class.getName());
+        
+        // Security configurations - always use SecureUberspector when class loading is disallowed (default: true)
         if (configuration.velocityDisallowClassLoading()) {
             velocityProperties.put(RuntimeConstants.UBERSPECT_CLASSNAME, SecureUberspector.class.getName());
+            // Additional security restrictions
+            velocityProperties.put("runtime.introspector.restrict.packages", "java.lang.reflect,java.lang.Class,java.lang.Runtime,java.lang.System,java.io,java.nio");
+            velocityProperties.put("runtime.introspector.restrict.classes", "java.lang.Class,java.lang.Runtime,java.lang.System,java.lang.ProcessBuilder");
         }
         velocityEngine = new VelocityEngine();
         velocityEngine.init(velocityProperties);
@@ -143,6 +148,15 @@ public class VelocityTemplateEngine implements TemplateEngine {
 
     @Override
     public <T> T executeTemplate(String template, HttpRequest request, Class<? extends DTO<T>> dtoClass) {
+        // Security check: Velocity templates are disabled by default
+        if (!configuration.velocityTemplatesEnabled()) {
+            throw new UnsupportedOperationException(
+                "Velocity templates are disabled for security reasons. " +
+                "To enable, set mockserver.velocityTemplatesEnabled=true or use Configuration.velocityTemplatesEnabled(true). " +
+                "WARNING: Enabling Velocity templates may expose security vulnerabilities if class loading is enabled."
+            );
+        }
+        
         T result;
         try {
             validateTemplate(template);

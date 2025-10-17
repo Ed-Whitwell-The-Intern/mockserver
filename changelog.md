@@ -9,9 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - support for custom TLS protocols such as TLSv1.2,TLSv1.3
 - better error messages when MockServerClient fails due to TLS or networking errors
+- GraalJS JavaScript engine support (org.graalvm.js:js:23.0.9)
+- Micrometer observability support (io.micrometer:micrometer-observation:1.14.8)
 
 ### Changed
 - removed implicit reliance on internal java-certificate-classes (thanks to @Arkinator)
+- **BREAKING**: migrated from javax.servlet to jakarta.servlet (4.0.1 → 6.0.0)
+- **MAJOR**: upgraded Spring Framework (5.3.25 → 6.2.8)
+- **MAJOR**: upgraded Jackson (2.14.2 → 2.18.2)
+- **MAJOR**: upgraded Netty (4.1.89.Final → 4.1.125.Final)
+- **MAJOR**: upgraded Mockito (4.11.0 → 5.14.2)
+- **MAJOR**: upgraded Hamcrest (2.2 → 3.0)
+- upgraded BouncyCastle (1.72 → 1.82)
+- upgraded Guava (31.1-jre → 32.1.3-jre)
+- upgraded SLF4J (2.0.6 → 2.0.16)
+- upgraded Nimbus JOSE JWT (9.30.2 → 10.5)
+- upgraded Velocity Engine (2.3 → 2.4.1)
+- upgraded XMLUnit (2.9.1 → 2.10.4)
+- upgraded JSON Path (2.7.0 → 2.9.0)
+- upgraded Commons Lang3 (3.12.0 → 3.19.0)
+- upgraded Commons IO (2.11.0 → 2.20.0)
+- upgraded Commons Codec (1.15 → 1.19.0)
+- upgraded Commons BeanUtils (1.9.4 → 1.11.0)
+- upgraded JAXB (4.0.2 → 4.0.6)
+- upgraded JMustache (1.15 → 1.16)
+
+### Security
+- **CVE-2025-5222**: upgraded ICU4J (72.1 → 75.1) to fix stack buffer overflow vulnerability
+- upgraded SnakeYAML (1.33 → 2.2) for security improvements
 
 ### Fixed
 

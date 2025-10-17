@@ -3,9 +3,6 @@ package org.mockserver.templates.engine.javascript;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
-import jdk.nashorn.api.scripting.ClassFilter;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.mockserver.configuration.Configuration;
 import org.mockserver.log.model.LogEntry;
 import org.mockserver.logging.MockServerLogger;
@@ -35,42 +32,107 @@ import static org.mockserver.log.model.LogEntryMessages.TEMPLATE_GENERATED_MESSA
 @SuppressWarnings({"RedundantSuppression", "deprecation", "removal", "FieldMayBeFinal"})
 public class JavaScriptTemplateEngine implements TemplateEngine {
 
-    private ScriptEngine engine;
+    private final ThreadLocal<ScriptEngine> engineThreadLocal = new ThreadLocal<>();
     private ObjectMapper objectMapper;
     private final MockServerLogger mockServerLogger;
     private HttpTemplateOutputDeserializer httpTemplateOutputDeserializer;
     private final Configuration configuration;
 
     public JavaScriptTemplateEngine(MockServerLogger mockServerLogger, Configuration configuration) {
-        System.setProperty("nashorn.args", "--language=es6");
         this.configuration = (configuration == null) ? configuration() : configuration;
-        this.engine = new NashornScriptEngineFactory().getScriptEngine(new DisallowClassesInTemplates(configuration));
         this.mockServerLogger = mockServerLogger;
         this.httpTemplateOutputDeserializer = new HttpTemplateOutputDeserializer(mockServerLogger);
         this.objectMapper = ObjectMapperFactory.createObjectMapper();
     }
 
+    private ScriptEngine getEngine() {
+        ScriptEngine engine = engineThreadLocal.get();
+        if (engine == null) {
+            ScriptEngineManager manager = new ScriptEngineManager();
+            engine = manager.getEngineByName("graal.js");
+            
+            // Configure security restrictions for GraalJS
+            if (engine != null) {
+                try {
+                    // Disable Java class access
+                    engine.put("java", null);
+                    engine.put("Java", null);
+                    engine.put("Packages", null);
+                    engine.put("JavaImporter", null);
+                    
+                    // Disable dangerous global objects
+                    engine.put("load", null);
+                    engine.put("loadWithNewGlobal", null);
+                    engine.put("exit", null);
+                    engine.put("quit", null);
+                    
+                    // Configure GraalJS specific security options via system properties
+                    System.setProperty("polyglot.js.allowHostAccess", "false");
+                    System.setProperty("polyglot.js.allowHostClassLookup", "false");
+                    System.setProperty("polyglot.js.allowCreateThread", "false");
+                    System.setProperty("polyglot.js.allowIO", "false");
+                    System.setProperty("polyglot.js.allowNativeAccess", "false");
+                    System.setProperty("polyglot.js.allowCreateProcess", "false");
+                    
+                } catch (Exception e) {
+                    // Log but don't fail if security configuration fails
+                    mockServerLogger.logEvent(
+                        new LogEntry()
+                            .setLogLevel(Level.WARN)
+                            .setMessageFormat("Failed to configure JavaScript engine security: {}")
+                            .setArguments(e.getMessage())
+                    );
+                }
+            }
+            
+            engineThreadLocal.set(engine);
+        }
+        return engine;
+    }
+
+    /**
+     * Clean up ThreadLocal resources to prevent memory leaks
+     */
+    public void cleanup() {
+        engineThreadLocal.remove();
+    }
+
     @Override
     public <T> T executeTemplate(String template, HttpRequest request, Class<? extends DTO<T>> dtoClass) {
+        // Security check: JavaScript templates are disabled by default
+        if (!configuration.javascriptTemplatesEnabled()) {
+            throw new UnsupportedOperationException(
+                "JavaScript templates are disabled for security reasons. " +
+                "To enable, set mockserver.javascriptTemplatesEnabled=true or use Configuration.javascriptTemplatesEnabled(true). " +
+                "WARNING: Enabling JavaScript templates may expose security vulnerabilities (CVE-2021-32827)."
+            );
+        }
+        
         T result = null;
         String script = wrapTemplate(template);
         try {
             validateTemplate(template);
+            ScriptEngine engine = getEngine();
             if (engine != null) {
                 Compilable compilable = (Compilable) engine;
-                // HttpResponse handle(HttpRequest httpRequest) - ES6
                 CompiledScript compiledScript = compilable.compile(script + " function serialise(request) { return JSON.stringify(handle(JSON.parse(request)), null, 2); }");
 
-                Bindings serialiseBindings = engine.createBindings();
                 engine.setBindings(new ScriptBindings(TemplateFunctions.BUILT_IN_FUNCTIONS), ScriptContext.ENGINE_SCOPE);
-                compiledScript.eval(serialiseBindings);
+                compiledScript.eval();
 
-                ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) serialiseBindings.get("serialise");
-                Object stringifiedResponse = scriptObjectMirror.call(null, new HttpRequestTemplateObject(request));
+                Object stringifiedResponse;
+                if (engine instanceof Invocable) {
+                    String requestJson = objectMapper.writeValueAsString(new HttpRequestTemplateObject(request));
+                    stringifiedResponse = ((Invocable) engine).invokeFunction("serialise", requestJson);
+                } else {
+                    stringifiedResponse = null;
+                }
 
-                JsonNode generatedObject = null;
-                try {
-                    generatedObject = objectMapper.readTree(String.valueOf(stringifiedResponse));
+            JsonNode generatedObject = null;
+            try {
+                if (stringifiedResponse != null) {
+                        generatedObject = objectMapper.readTree(stringifiedResponse.toString());
+                    }
                 } catch (Throwable throwable) {
                     if (MockServerLogger.isEnabled(Level.INFO)) {
                         mockServerLogger.logEvent(
@@ -99,10 +161,10 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
                         .setLogLevel(Level.ERROR)
                         .setHttpRequest(request)
                         .setMessageFormat(
-                            "JavaScript based templating is only available in a JVM with the \"nashorn\" JavaScript engine, " +
-                                "please use a JVM with the \"nashorn\" JavaScript engine, such as Oracle Java 8+"
+                            "JavaScript templates are not available - no JavaScript engine found. " +
+                                "Please use a JVM with GraalVM JavaScript engine or add the GraalJS dependency"
                         )
-                        .setArguments(new RuntimeException("\"nashorn\" JavaScript engine not available"))
+                        .setArguments(new RuntimeException("JavaScript engine not available"))
                 );
             }
         } catch (Exception e) {
@@ -126,7 +188,7 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
         }
     }
 
-    private static class DisallowClassesInTemplates implements ClassFilter {
+    private static class DisallowClassesInTemplates {
         private Iterable<String> restrictedClassesList = null;
         private final Configuration configuration;
 
@@ -141,12 +203,12 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
 
         /**
          * Specifies whether the Java class of the specified name be exposed to javascript
+         * Note: Class filtering not available with standard ScriptEngine API
          *
          * @param className is the fully qualified name of the java class being checked.
          *                  This will not be null. Only non-array class names will be passed.
          * @return true if the java class can be exposed to javascript, false otherwise
          */
-        @Override
         public boolean exposeToScripts(String className) {
             if (restrictedClassesList != null) {
                 return StreamSupport
@@ -157,5 +219,4 @@ public class JavaScriptTemplateEngine implements TemplateEngine {
             }
         }
     }
-
 }

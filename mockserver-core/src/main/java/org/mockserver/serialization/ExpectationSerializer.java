@@ -54,12 +54,19 @@ public class ExpectationSerializer implements Serializer<Expectation> {
     private JsonSchemaExpectationValidator getValidator() {
         if (expectationValidator == null) {
             if (!printedECMA262Warning) {
-                // output warning if Java 11+ due to deprecation warning from Nashorn
+                // output warning if Java 11+ due to JavaScript engine requirements
                 if (!System.getProperty("java.version").contains("1.8") && !System.getProperty("java.version").contains("1.9")) {
                     try {
-                        this.getClass().getClassLoader().loadClass("jdk.nashorn.api.scripting.NashornScriptEngineFactory");
+                        // Check for GraalJS availability
+                        this.getClass().getClassLoader().loadClass("org.graalvm.polyglot.Engine");
                         System.err.println("Loading JavaScript to validate ECMA262 regular expression in JsonSchema because java.util.regex package in Java does not match ECMA262");
                     } catch (ClassNotFoundException ignore) {
+                        // Fallback check for any JavaScript engine
+                        try {
+                            new javax.script.ScriptEngineManager().getEngineByName("graal.js");
+                        } catch (Exception e) {
+                            // No JavaScript engine available
+                        }
                     }
                 }
                 printedECMA262Warning = true;
@@ -144,7 +151,7 @@ public class ExpectationSerializer implements Serializer<Expectation> {
                 }
                 return expectation;
             } else {
-                throw new IllegalArgumentException(StringUtils.removeEndIgnoreCase(formatLogMessage("incorrect expectation json format for:{}schema validation errors:{}", jsonExpectation, validationErrors), "\n"));
+                throw new IllegalArgumentException(StringUtils.removeEnd(formatLogMessage("incorrect expectation json format for:{}schema validation errors:{}", jsonExpectation, validationErrors), "\n"));
             }
         }
     }
