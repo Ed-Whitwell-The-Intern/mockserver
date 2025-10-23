@@ -95,18 +95,7 @@
                 <artifactId>mockserver-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>mockserver-war</artifactId>
-                <classifier>classes</classifier>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>mockserver-proxy-war</artifactId>
-                <classifier>classes</classifier>
-                <version>${project.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>mockserver-netty</artifactId>

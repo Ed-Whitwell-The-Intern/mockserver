@@ -1,9 +1,0 @@
-{
-  "type": "object",
-  "properties": {
-    "someField": {
-      "type": "string"
-    }
-  },
-  "required": ["someField"]
-}
