@@ -1,0 +1,10 @@
+{
+  "httpRequest": {
+    "method": "GET",
+    "path": "/calc"
+  },
+  "httpResponseTemplate": {
+    "templateType": "JAVASCRIPT",
+    "template": "// Simple calculator using query parameters\nvar params = request.queryStringParameters;\nvar a = parseFloat(params.a ? params.a[0] : 0);\nvar b = parseFloat(params.b ? params.b[0] : 0);\nvar op = params.op ? params.op[0] : '+';\nvar result;\n\nswitch(op) {\n  case '+':\n    result = a + b;\n    break;\n  case '-':\n    result = a - b;\n    break;\n  case '*':\n    result = a * b;\n    break;\n  case '/':\n    result = b !== 0 ? a / b : 'Error: Division by zero';\n    break;\n  default:\n    result = 'Error: Invalid operation';\n}\n\nreturn {\n  statusCode: 200,\n  headers: {\n    'Content-Type': ['application/json']\n  },\n  body: JSON.stringify({\n    operation: a + ' ' + op + ' ' + b,\n    result: result,\n    timestamp: new Date().toISOString()\n  })\n};"
+  }
+}

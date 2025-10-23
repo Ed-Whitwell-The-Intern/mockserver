@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: Maven JAR Plugin 3.3.0
+Build-Jdk-Spec: 21
+Specification-Title: MockServer & Proxy Netty
+Specification-Version: 5.15
+Implementation-Title: MockServer & Proxy Netty
+Implementation-Version: 5.15.1-SNAPSHOT
+Main-Class: org.mockserver.cli.Main
+

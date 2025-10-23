@@ -1,0 +1,10 @@
+{
+  "httpRequest": {
+    "method": "GET",
+    "path": "/calc"
+  },
+  "httpResponseTemplate": {
+    "templateType": "JAVASCRIPT",
+    "template": "var params = request.queryStringParameters; var a = parseFloat(params.a ? params.a[0] : 0); var b = parseFloat(params.b ? params.b[0] : 0); var op = params.op ? params.op[0] : \"+\"; var result; switch(op) { case \"+\": result = a + b; break; case \"-\": result = a - b; break; case \"*\": result = a * b; break; case \"/\": result = b !== 0 ? a / b : \"Error: Division by zero\"; break; default: result = \"Error: Invalid operation\"; } return { statusCode: 200, headers: { \"Content-Type\": [\"application/json\"] }, body: JSON.stringify({ operation: a + \" \" + op + \" \" + b, result: result, timestamp: new Date().toISOString() }) };"
+  }
+}
